@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link href='https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+  </style>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v0.39.1/mapbox-gl.js'></script>
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <div id="info"></div>
+  <script>
+
+      const map = L.map("map", {
+        maxZoom: 17
+      }).setView([36.5,140.6], 6);
+
+      const mvtSource = new L.TileLayer.MVTSource({
+        url: "./tile/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        maxNativeZoom: 14,
+        style: function(feature){
+          let color = feature.properties.P29_004 === "16001" ? "red" :
+                        feature.properties.P29_004 === "16002" ? "purple" :
+                        feature.properties.P29_004 === "16003" ? "pink" :
+                        feature.properties.P29_004 === "16004" ? "yellowgreen" :
+                        feature.properties.P29_004 === "16005" ? "lime" :
+                        feature.properties.P29_004 === "16006" ? "skyblue" :
+                        feature.properties.P29_004 === "16007" ? "blue" : "yellow";
+          return {color: color, radius: 8};
+        }
+      });
+
+      const photo = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg", {
+        maxZoom: 18
+      }).addTo(map);
+
+      mvtSource.addTo(map);
+
+
+  </script>
+</body>
+</html>

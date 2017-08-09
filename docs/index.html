@@ -48,62 +48,24 @@
 
       // method that we will use to update the control based on feature properties passed
       info.update = function (props) {
-          this._div.innerHTML = '<h4>1960年の鉄道</h4>' +  (props ?
-              '<b>' + props.N05_002 + '</b><br>' + props.N05_003
+          this._div.innerHTML = '<h4>学校</h4>' +  (props ?
+              '<b>' + props.P29_005 + '</b>'
               : 'Hover over a state');
       };
 
       info.addTo(map);
-/*
-      const station = new L.TileLayer.MVTSource({
-        url: "./station/" + "{z}/{x}/{y}.mvt",
-        maxZoom: 18,
-        minZoom: 10,
-        getIDForLayerFeature: function(feature){
-          return feature.properties.N05_005b + feature.properties.N05_011;
-        },
-        filter: function(feature, context){
-          if(feature.properties.N05_005e === "9999") return true;
-          return false;
-        },
-        style: function(feature){
-          return {color: "pink", radius: 3};
-        }
-      });
-*//*
-      const section = new L.TileLayer.MVTSource({
-        url: "./section/" + "{z}/{x}/{y}.pbf",
-        maxZoom: 18,
-        debug: true,
-        mutexToggle: true,
-        onClick: hoveronFeature,
-        getIDForLayerFeature: function(feature){
-          return feature.properties.N05_006;
-        },
-        filter: function(feature, context){
-          return (parseInt(feature.properties.N05_005b) < 1960) && (parseInt(feature.properties.N05_005e) > 1960) ? true : false;
-        },
-        style: function(feature){
-          const railColor = feature.properties.N05_001 === "1" ? "skyblue" :
-                            feature.properties.N05_001 === "2" ? "blue" :
-                            feature.properties.N05_001 === "3" ? "#00d2bf" :
-                            feature.properties.N05_001 === "4" ? "#d40098" :
-                            "gold";
-          return {color: railColor, size: 2, selected:{color: "yellow", size: 4}};
-        }
-      });*/
-/*
+
       const schools = new L.TileLayer.MVTSource({
-        url: "./schools/" + "{z}/{x}/{y}.mvt",
+        url: "./tile/schools/" + "{z}/{x}/{y}.mvt",
         maxZoom: 18,
         getIDForLayerFeature: function(feature){
           return feature.properties.P29_005;
         },
-        onClick: hoveronFeature,
+        onClick: hoveronFeature,/*
         filter: function(feature, context){
           if(feature.properties.P29_004 === '16004') return true;
           return false;
-        },
+        },*/
         style: function(feature){
           let color = feature.properties.P29_004 === "16001" ? "yellow" :
                       feature.properties.P29_004 === "16002" ? "gold" :
@@ -117,58 +79,15 @@
         }
       });
 
-      const lake = new L.TileLayer.MVTSource({
-        url: "./lake/" + "{z}/{x}/{y}.mvt",
-        maxZoom: 18,
-        getIDForLayerFeature: function(feature){
-          return feature.properties.W09_001;
-        },
-        onClick: hoveronFeature,
-        style: function(feature){
-          return {fill: true, color: "#9fffff"};
-        }
-      });
-*/
-      const pub = new L.TileLayer.MVTSource({
-        url: "./pub/" + "{z}/{x}/{y}.mvt",
-        maxZoom: 18,
-        debug: true,
-        mutexToggle: true,
-        onClick: hoveronFeature,
-        getIDForLayerFeature: function(feature){
-          if(feature.layer.name === "roads") return feature.properties.N10_005;
-          if(feature.layer.name === "hall") return feature.properties.P02_004;
-        },
-        filter: function(feature, context){
-          return (feature.layer.name === "roads");
-        }/*,
-        style: function(feature){
-          return feature.layer.Name === "roads"
-          return {color: railColor, size: 2, selected:{color: "yellow", size: 4}};
-        }*/
-      });
-
       const base = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg", {
         maxZoom: 18
       }).addTo(map);
-/*
-      const slope = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/slopemap/" + "{z}/{x}/{y}.png", {
-        maxZoom: 15,
-        className: 'blended'
-      }).addTo(map);*/
 
-      pub.addTo(map);
-/*
-      section.addTo(map);
-      station.addTo(map);
       schools.addTo(map);
-      lake.addTo(map);;*/
-
 
       function hoveronFeature(e) {
         if(!e.feature) return;
-        console.log(e.feature.layer.name);/*
-        info.update(e.feature.properties);*/
+        info.update(e.feature.properties);
       }
 
   </script>
