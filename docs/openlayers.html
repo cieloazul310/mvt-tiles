@@ -30,19 +30,12 @@
       const gakkou = new ol.layer.VectorTile({
         source: new ol.source.VectorTile({
           format: new ol.format.MVT(),
-          url: "./section/" + "{z}/{x}/{y}.pbf",
+          url: "./tile/schools/" + "{z}/{x}/{y}.mvt",
           tilePixelRatio: 16,
-          tileGrid: new ol.tilegrid.createXYZ({maxZoom: 15, minZoom: 6})
+          tileGrid: new ol.tilegrid.createXYZ({maxZoom: 15, minZoom: 8})
         }),
         title: "ラベル",
-        visible: true/*,
-        style: new ol.style.Style({
-          image: new ol.style.Circle({
-            fill: new ol.style.Fill({color: "red"}),
-            stroke: new ol.style.Stroke({color: "white", width: 2}),
-            radius: 4
-          })
-        })*/
+        visible: true
       });
 
       const view = new ol.View({

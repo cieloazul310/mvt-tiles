@@ -58,8 +58,9 @@
       const schools = new L.TileLayer.MVTSource({
         url: "./tile/schools/" + "{z}/{x}/{y}.mvt",
         maxZoom: 18,
+        mutexToggle: true,
         getIDForLayerFeature: function(feature){
-          return feature.properties.P29_005;
+          return feature.properties.P29_001 + feature.properties.P29_005;
         },
         onClick: hoveronFeature,/*
         filter: function(feature, context){
@@ -75,7 +76,7 @@
                       feature.properties.P29_004 === "16006" ? "#78109d" :
                       feature.properties.P29_004 === "16007" ? "#d90096" : "#3f9386";
 
-          return {color: color, radius: 6};
+          return {color: color, radius: 6, selected: {color: "red", radius: 10}};
         }
       });
 
