@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css"/>
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+    .info {
+        padding: 6px 8px;
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        background: white;
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .info h4 {
+        margin: 0 0 5px;
+        color: #777;
+    }
+    .blended .leaflet-tile-container{
+      mix-blend-mode: multiply;
+    }
+  </style>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet-src.js"></script>
+  <script src="./js/Leaflet.MapboxVectorTile.min.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <script>
+
+      const map = L.map("map", {
+        maxZoom: 17
+      }).setView([36.5,140.6], 6);
+
+      const info = L.control();
+
+      info.onAdd = function (map) {
+          this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+          this.update();
+          return this._div;
+      };
+
+      // method that we will use to update the control based on feature properties passed
+      info.update = function (props) {
+          this._div.innerHTML = '<h4>1960年の鉄道</h4>' +  (props ?
+              '<b>' + props.N05_002 + '</b><br>' + props.N05_003
+              : 'Hover over a state');
+      };
+
+      info.addTo(map);
+/*
+      const station = new L.TileLayer.MVTSource({
+        url: "./station/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        minZoom: 10,
+        getIDForLayerFeature: function(feature){
+          return feature.properties.N05_005b + feature.properties.N05_011;
+        },
+        filter: function(feature, context){
+          if(feature.properties.N05_005e === "9999") return true;
+          return false;
+        },
+        style: function(feature){
+          return {color: "pink", radius: 3};
+        }
+      });
+*//*
+      const section = new L.TileLayer.MVTSource({
+        url: "./section/" + "{z}/{x}/{y}.pbf",
+        maxZoom: 18,
+        debug: true,
+        mutexToggle: true,
+        onClick: hoveronFeature,
+        getIDForLayerFeature: function(feature){
+          return feature.properties.N05_006;
+        },
+        filter: function(feature, context){
+          return (parseInt(feature.properties.N05_005b) < 1960) && (parseInt(feature.properties.N05_005e) > 1960) ? true : false;
+        },
+        style: function(feature){
+          const railColor = feature.properties.N05_001 === "1" ? "skyblue" :
+                            feature.properties.N05_001 === "2" ? "blue" :
+                            feature.properties.N05_001 === "3" ? "#00d2bf" :
+                            feature.properties.N05_001 === "4" ? "#d40098" :
+                            "gold";
+          return {color: railColor, size: 2, selected:{color: "yellow", size: 4}};
+        }
+      });*/
+/*
+      const schools = new L.TileLayer.MVTSource({
+        url: "./schools/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        getIDForLayerFeature: function(feature){
+          return feature.properties.P29_005;
+        },
+        onClick: hoveronFeature,
+        filter: function(feature, context){
+          if(feature.properties.P29_004 === '16004') return true;
+          return false;
+        },
+        style: function(feature){
+          let color = feature.properties.P29_004 === "16001" ? "yellow" :
+                      feature.properties.P29_004 === "16002" ? "gold" :
+                      feature.properties.P29_004 === "16003" ? "#aca777" :
+                      feature.properties.P29_004 === "16004" ? "#ff963e" :
+                      feature.properties.P29_004 === "16005" ? "#ac815c" :
+                      feature.properties.P29_004 === "16006" ? "#78109d" :
+                      feature.properties.P29_004 === "16007" ? "#d90096" : "#3f9386";
+
+          return {color: color, radius: 6};
+        }
+      });
+
+      const lake = new L.TileLayer.MVTSource({
+        url: "./lake/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        getIDForLayerFeature: function(feature){
+          return feature.properties.W09_001;
+        },
+        onClick: hoveronFeature,
+        style: function(feature){
+          return {fill: true, color: "#9fffff"};
+        }
+      });
+*/
+      const pub = new L.TileLayer.MVTSource({
+        url: "./pub/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        debug: true,
+        mutexToggle: true,
+        onClick: hoveronFeature,
+        getIDForLayerFeature: function(feature){
+          if(feature.layer.name === "roads") return feature.properties.N10_005;
+          if(feature.layer.name === "hall") return feature.properties.P02_004;
+        },
+        filter: function(feature, context){
+          return (feature.layer.name === "roads");
+        }/*,
+        style: function(feature){
+          return feature.layer.Name === "roads"
+          return {color: railColor, size: 2, selected:{color: "yellow", size: 4}};
+        }*/
+      });
+
+      const base = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg", {
+        maxZoom: 18
+      }).addTo(map);
+/*
+      const slope = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/slopemap/" + "{z}/{x}/{y}.png", {
+        maxZoom: 15,
+        className: 'blended'
+      }).addTo(map);*/
+
+      pub.addTo(map);
+/*
+      section.addTo(map);
+      station.addTo(map);
+      schools.addTo(map);
+      lake.addTo(map);;*/
+
+
+      function hoveronFeature(e) {
+        if(!e.feature) return;
+        console.log(e.feature.layer.name);/*
+        info.update(e.feature.properties);*/
+      }
+
+  </script>
+</body>
+</html>

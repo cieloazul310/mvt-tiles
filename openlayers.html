@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="http://openlayers.org/en/v4.2.0/css/ol.css">
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+  </style>
+  <script src="http://openlayers.org/en/v4.2.0/build/ol.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <div id="info"></div>
+  <script>
+
+      const ort = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg"
+        }),
+        title: "地理院オルソ",
+        visible: true
+      });
+
+      const gakkou = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT(),
+          url: "./section/" + "{z}/{x}/{y}.pbf",
+          tilePixelRatio: 16,
+          tileGrid: new ol.tilegrid.createXYZ({maxZoom: 15, minZoom: 6})
+        }),
+        title: "ラベル",
+        visible: true/*,
+        style: new ol.style.Style({
+          image: new ol.style.Circle({
+            fill: new ol.style.Fill({color: "red"}),
+            stroke: new ol.style.Stroke({color: "white", width: 2}),
+            radius: 4
+          })
+        })*/
+      });
+
+      const view = new ol.View({
+        center: ol.proj.fromLonLat([140.6,36.5]),
+        zoom: 10
+      });
+
+      const map = new ol.Map({
+        target: "map",
+        controls: ol.control.defaults().extend([new ol.control.ScaleLine()]),
+        view: view,
+        layers: [ort, gakkou]
+      });
+
+      map.on("click", function(evt){
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature){
+          return feature;
+        });
+        if(feature){
+          console.log("Feature clicked!");
+          document.getElementById("info").innerHTML = feature.get("P29_005");
+        }
+      });
+
+  </script>
+</body>
+</html>
