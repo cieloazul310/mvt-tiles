@@ -22,9 +22,6 @@
         margin: 0 0 5px;
         color: #777;
     }
-    .blended .leaflet-tile-container{
-      mix-blend-mode: multiply;
-    }
   </style>
   <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet-src.js"></script>
   <script src="./js/Leaflet.MapboxVectorTile.min.js"></script>
@@ -32,11 +29,12 @@
 </head>
 <body>
   <div class="map" id="map"></div>
+  <button id="univ">大学</button>
   <script>
 
       const map = L.map("map", {
         maxZoom: 17
-      }).setView([36.5,140.6], 6);
+      }).setView([36.384254,140.470161], 11);
 
       const info = L.control();
 
@@ -50,7 +48,7 @@
       info.update = function (props) {
           this._div.innerHTML = '<h4>学校</h4>' +  (props ?
               '<b>' + props.P29_005 + '</b>'
-              : 'Hover over a state');
+              : 'Click circles');
       };
 
       info.addTo(map);
@@ -58,7 +56,9 @@
       const schools = new L.TileLayer.MVTSource({
         url: "./tile/schools/" + "{z}/{x}/{y}.mvt",
         maxZoom: 18,
+        maxNativeZoom: 15,
         mutexToggle: true,
+        attribution: '<a href="http://nlftp.mlit.go.jp/ksj/" target="_blank">国土数値情報（学校）</a>',
         getIDForLayerFeature: function(feature){
           return feature.properties.P29_001 + feature.properties.P29_005;
         },
@@ -81,7 +81,8 @@
       });
 
       const base = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg", {
-        maxZoom: 18
+        maxNativeZoom: 18,
+        attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院地図</a>'
       }).addTo(map);
 
       schools.addTo(map);
