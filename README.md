@@ -1,4 +1,4 @@
-# MVT-Tiles Test Repository
+# MVT Test Repository
 
 バイナリベクトルタイルの配信実験のページです。
 
