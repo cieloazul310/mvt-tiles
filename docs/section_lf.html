@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css"/>
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+    .info {
+        padding: 6px 8px;
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        background: white;
+        background: rgba(255,255,255,0.8);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+    }
+    .info h4 {
+        margin: 0 0 5px;
+        color: #777;
+    }
+  </style>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet-src.js"></script>
+  <script src="./js/Leaflet.MapboxVectorTile.min.js"></script>
+  <title>Binary Vector Tiles Test Page</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <script>
+
+      const map = L.map("map", {
+        maxZoom: 17
+      }).setView([36.384254,140.470161], 11);
+
+      const info = L.control();
+
+      info.onAdd = function (map) {
+          this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+          this.update();
+          return this._div;
+      };
+
+      // method that we will use to update the control based on feature properties passed
+      info.update = function (props) {
+          this._div.innerHTML = '<h4>鉄道</h4>' +  (props ?
+              '<b>' + props.N05_003 + props.N05_002 + '</b>'
+              : 'Click circles');
+      };
+
+      info.addTo(map);
+
+      const schools = new L.TileLayer.MVTSource({
+        url: "./tile/section/" + "{z}/{x}/{y}.mvt",
+        maxZoom: 18,
+        maxNativeZoom: 10,
+        mutexToggle: true,
+        attribution: '<a href="http://nlftp.mlit.go.jp/ksj/" target="_blank">国土数値情報（鉄道時系列）</a>',
+        getIDForLayerFeature: function(feature){
+          return feature.properties.N05_003 + feature.properties.N05_002;
+        },
+        onClick: hoveronFeature,
+        filter: function(feature, context){
+          if(feature.properties.N05_005e === '9999') return true;
+          return false;
+        }/*,
+        style: function(feature){
+          let color = feature.properties.P29_004 === "16001" ? "yellow" :
+                      feature.properties.P29_004 === "16002" ? "gold" :
+                      feature.properties.P29_004 === "16003" ? "#aca777" :
+                      feature.properties.P29_004 === "16004" ? "#ff963e" :
+                      feature.properties.P29_004 === "16005" ? "#ac815c" :
+                      feature.properties.P29_004 === "16006" ? "#78109d" :
+                      feature.properties.P29_004 === "16007" ? "#d90096" : "#3f9386";
+
+          return {color: color, radius: 6, selected: {color: "red", radius: 10}};
+        }*/
+      });
+
+      const base = L.tileLayer("//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg", {
+        maxNativeZoom: 18,
+        attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院地図</a>'
+      }).addTo(map);
+
+      schools.addTo(map);
+
+      function hoveronFeature(e) {
+        if(!e.feature) return;
+        info.update(e.feature.properties);
+      }
+
+  </script>
+</body>
+</html>

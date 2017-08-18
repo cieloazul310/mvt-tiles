@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="//openlayers.org/en/v4.3.1/css/ol.css">
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+    .layer-container button{
+      color: white;
+      font-weight: bold;
+      background-color: gray;
+      padding: .8em;
+      margin: .2em;
+      border: none;
+      border-radius: 8px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .layer-container button.active{
+      background-color: skyblue;
+    }
+  </style>
+  <script src="//openlayers.org/en/v4.3.1/build/ol.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <div id="info">路線・駅をクリックしてください</div>
+  <div>
+    <input type="range" min="1950" id="slider"/><span id="year"></span>
+  </div>
+  <div class="layer-container">
+    <div id="basemaps"></div>
+    <div id="overlays"></div>
+  </div>
+  <script>
+
+      const years = [new Date().getFullYear()];
+      const slider = document.getElementById("slider");
+
+      document.getElementById("year").innerHTML = years[0];
+      slider.setAttribute("max", years[0]);
+      slider.setAttribute("value", years[0]);
+
+      const styles = {
+                      shinkansen: {width: 4, color: "#0094ff", zIndex: 10},
+                      jr: {width: 2, color: "#00c8bc", zIndex: 8},
+                      priway: {width: 2, color: "#cf0040", zIndex: 6},
+                      pubway: {width: 2, color: "#f09a4c", zIndex: 4},
+                      third: {width: 2, color: "#f0d14c", zIndex: 2}
+                    };
+
+      const attributions = {
+        gsi: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>',
+        ksj: '<a href="http://nlftp.mlit.go.jp/ksj/" target="_blank">国土数値情報</a>',
+      };
+
+      const ort = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg",
+          attributions: new ol.Attribution({html: attributions.gsi})
+        }),
+        title: "写真",
+        visible: false
+      });
+
+      const relief = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/relief/" + "{z}/{x}/{y}.png",
+          attributions: new ol.Attribution({html: attributions.gsi})
+        }),
+        title: "色別標高図",
+        visible: false
+      });
+
+      const slope = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/slopemap/" + "{z}/{x}/{y}.png",
+          attributions: new ol.Attribution({html: attributions.gsi})
+        }),
+        title: "傾斜量図",
+        visible: true
+      });
+
+      const cjpale = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/pale/" + "{z}/{x}/{y}.png",
+          attributions: new ol.Attribution({html: attributions.gsi})
+        }),
+        title: "地理院地図",
+        visible: false
+      })
+
+      const basemaps = new ol.layer.Group({
+        layers: [ort, slope, cjpale, relief]
+      });
+
+/*
+      const section = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT({
+            layers: ["section"]
+          }),
+          url: "./tile/section/" + "{z}/{x}/{y}.mvt"
+        }),
+        title: "ラベル",
+        visible: true,
+        overlaps: false,
+        style: styleFunction
+      });
+*/
+      const section = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT({
+            layers: ["section"]
+          }),
+          url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
+          attributions: new ol.Attribution({html: attributions.ksj})
+        }),
+        title: "鉄道路線",
+        visible: true,
+        overlaps: false,
+        style: sectionStyleFunction
+      });
+
+      const station = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT({
+            layers: ["station"]
+          }),
+          url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
+          attributions: new ol.Attribution({html: attributions.ksj})
+        }),
+        title: "駅",
+        visible: true,
+        overlaps: false,
+        maxResolution: 50,
+        style: stationStyleFunction
+      });
+
+      const overlays = new ol.layer.Group({
+        layers: [section, station]
+      });
+
+      const view = new ol.View({
+        center: ol.proj.fromLonLat([140.6,36.5]),
+        zoom: 6,
+        maxZoom: 14.5,
+        minZoom: 3
+      });
+
+      const map = new ol.Map({
+        target: "map",
+        controls: ol.control.defaults({attribution: false}).extend([new ol.control.ScaleLine(), new ol.control.Attribution({collapsible: false})]),
+        view: view,
+        layers: [basemaps, overlays]
+      });
+
+      map.on("singleclick", function(evt){
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature){
+          return feature;
+        });
+        if(feature){
+          document.getElementById("info").innerHTML = feature.get("N05_003") + feature.get("N05_002");
+        }
+      });
+
+      slider.addEventListener("change", function(){
+        const neu = parseInt(document.getElementById("slider").value);
+        years.push(neu);
+        document.getElementById("year").innerHTML = years[years.length-1];
+        section.setStyle(sectionStyleFunction);
+        station.setStyle(stationStyleFunction);
+      });
+
+      for (let x of basemaps.getLayers().getArray()){
+        let button = document.createElement("button");
+        button.innerHTML = x.get("title");
+        if(x.getVisible()) button.classList.add("active");
+
+        button.addEventListener("click", function(){
+          for (let y of basemaps.getLayers().getArray()){
+            y.setVisible(false);
+          }
+          x.setVisible(true);
+        });
+
+        document.getElementById("basemaps").appendChild(button);
+      }
+
+      for (let x of overlays.getLayers().getArray()){
+        let button = document.createElement("button");
+        button.innerHTML = x.get("title");
+        if(x.getVisible()) button.classList.add("active");
+        button.addEventListener("click", function(){
+          x.setVisible(!x.getVisible());
+          if(x.getVisible()) {
+            button.classList.add("active");
+          } else {
+            button.classList.remove("active");
+          }
+        });
+
+        document.getElementById("overlays").appendChild(button);
+      }
+
+      function sectionStyleFunction(feature){
+        return [
+          new ol.style.Style({
+                zIndex: 0,
+                stroke: new ol.style.Stroke({
+                  width: createStyle(feature).width + 1,
+                  color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? "white" : "rgba(255,255,255,0)"
+                })
+          }),
+          new ol.style.Style({
+                zIndex: createStyle(feature).zIndex,
+                stroke: new ol.style.Stroke({
+                  width: createStyle(feature).width,
+                  color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+                })
+          })
+        ];
+      }
+
+      function stationStyleFunction(feature){
+        return [
+          new ol.style.Style({
+                zIndex: 0,
+                image: new ol.style.Circle({
+                  radius: 6,
+                  fill: new ol.style.Fill({
+                    color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? "white" : "rgba(255,255,255,0)"
+                  })
+                })
+          }),
+          new ol.style.Style({
+                zIndex: 1,
+                image: new ol.style.Circle({
+                  radius: 4,
+                  fill: new ol.style.Fill({
+                    color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? "#ff0073" : "rgba(255,255,255,0)"
+                  })
+                })
+          }),
+          new ol.style.Style({
+            text: new ol.style.Text({
+              offsetX: 8,
+              font: "12px sans-serif",
+              textAlign: "left",
+              textBaseline: "middle",
+              text: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? feature.get("N05_011") : undefined,
+              fill: new ol.style.Fill({color: "black"}),
+              stroke: new ol.style.Stroke({color: "white", width: 3})
+            })
+          })
+        ];
+      }
+/*
+      function styleFunction(feature){
+        return new ol.style.Style({
+                zIndex: createStyle(feature).zIndex,
+                stroke: new ol.style.Stroke({
+                  width: createStyle(feature).width,
+                  color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) > years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+                })
+              });
+      }
+*/
+      function createStyle(feature){
+        return feature.get("N05_001") === "1" ? styles.shinkansen :
+                feature.get("N05_001") === "2" ? styles.jr :
+                feature.get("N05_001") === "3" ? styles.pubway :
+                feature.get("N05_001") === "4" ? styles.priway : styles.third;
+      }
+
+  </script>
+</body>
+</html>
