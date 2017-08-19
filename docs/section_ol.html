@@ -395,6 +395,7 @@
           station.setStyle(selectedStation);
         } else {
           selected.current = undefined;
+          document.getElementById("info").innerHTML = "路線を選択してください。";
           section.setStyle(sectionStyleFunction);
           station.setStyle(stationStyleFunction);
         }
@@ -420,8 +421,8 @@
       });
 
       //ボタンの設定
-
-      for (let x of document.querySelectorAll(".slider-guide button")){
+      const buttons = document.querySelectorAll(".slider-guide button");
+      for (let x of buttons){
         x.addEventListener("click", function(){
           const neu = years[years.length-1] + parseInt(this.dataset.year);
           if(neu <= years.extent.min){
@@ -589,7 +590,6 @@
       }
 
       function baiBain(resolution){
-        // 38.22
         return resolution < 100 ? 100 / resolution : 1;
       }
 

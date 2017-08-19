@@ -13,3 +13,11 @@
 
 [デモ]: http://cieloazul310.github.io/mvt-tiles/
 [国土数値情報]: http://nlftp.mlit.go.jp/ksj/
+
+
+### [国土数値情報] 鉄道時系列データ
+- URL: https://cieloazul310.github.io/mvt-tiles/tile/rails/{z}/{x}/{y}.mvt
+- ズームレベル4〜15
+- レイヤ名: `"section"`:路線, `"station"`:駅
+
+[国土数値情報]: http://nlftp.mlit.go.jp/ksj/
