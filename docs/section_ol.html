@@ -203,6 +203,8 @@
   </div>
   <script>
 
+  (function(){
+    "use strict";
       // スライダーの設定
 
       const years = [new Date().getFullYear()];
@@ -592,6 +594,8 @@
       function baiBain(resolution){
         return resolution < 100 ? 100 / resolution : 1;
       }
+      
+    })();
 
   </script>
 </body>
