@@ -1,23 +1,29 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="//openlayers.org/en/v4.3.1/css/ol.css">
   <style>
-    html, body {
+    html,
+    body {
+      width: 100%;
+      height: 100%;
       margin: 0;
       padding: 0;
       font-family: sans-serif;
     }
+
     .map-container {
       position: relative;
       width: 100%;
-      height: 520px;
+      height: 100%;
       margin: 0;
       padding: 0;
     }
+
     .map {
       width: 100%;
       height: 100%;
@@ -25,7 +31,9 @@
       margin: 0;
       padding: 0;
     }
+
     .map-container .info {
+      font-size: 14px;
       position: absolute;
       right: 0.5em;
       top: 0.5em;
@@ -35,27 +43,111 @@
       max-width: 70%;
       min-width: 120px;
       text-align: center;
-      -moz-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-      -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-      -o-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-      -ms-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+      -moz-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+      -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+      -o-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+      -ms-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
     }
-    .info ul{
+
+    .info ul {
       padding: 0;
+      margin: 0;
     }
-    .info li{
+
+    .info li {
       margin: .2em;
       display: inline-block;
     }
-    .ol-rotate {
+/*
+    .toggle-menu {
+      font-size: 12px;
+      font-family: monospace;
+      font-weight: bold;
+      background-color: #007dff;
+      color: white;
+      text-align: center;
+    }
+*/
+    .map .ol-rotate {
       top: 8.5em;
       left: 0.5em;
       right: auto;
     }
-    .layer-container ul{
+
+    .map-container .toggle-menu {
+      top: 4.5em;
+      left: 0.5em;
+      font-size: 1.2em;
+    }
+
+    .map-container .menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: rgba(0, 121, 209, 0.8);
+      color: white;
+      font-size: 24px;
+    }
+
+    #menu {
+      display: none;
+    }
+
+    .menu .menu-wrapper {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: scroll;
+      background-color: rgba(255,255,255,0);
+    }
+
+    .menu-wrapper .close-button {
+      font-size: 200%;
+      position: absolute;
+      right: 10px;
+      text-decoration: none;
+      top: 5px;
+      font-weight: lighter;
+      cursor: pointer;
+    }
+
+    .menu-wrapper .close-button::after{
+      content: "X";
+    }
+
+    .menu-wrapper-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0.5em;
+      text-align: center;
+    }
+
+    .menu-wrapper-inner ul {
       padding: 0;
     }
-    .layer-container li{
+
+    .menu-wrapper-inner li {
+      border: none;
+      cursor: pointer;
+      padding: 0.2em;
+      color: #ccc;
+    }
+
+    .menu-wrapper-inner  li.active {
+      color: white;
+      font-weight: bold;
+    }
+/*
+    .menu-container ul {
+      padding: 0;
+    }
+
+    .menu-container li {
       color: white;
       font-weight: bold;
       background-color: gray;
@@ -64,55 +156,48 @@
       cursor: pointer;
       padding: 0.2em;
     }
-    .layer-container li.active{
+
+    .menu-container li.active {
       background-color: skyblue;
     }
-    .menu-container ul{
-      padding: 0;
-    }
-    .menu-container li{
-      color: white;
-      font-weight: bold;
-      background-color: gray;
-      border: none;
-      border-radius: 2px;
-      cursor: pointer;
-      padding: 0.2em;
-    }
-    .menu-container li.active{
-      background-color: skyblue;
-    }
+*/
     .slider-container {
       position: absolute;
       width: 100%;
-      bottom: .7em;
+      bottom: 1.4em;
       pointer-events: none;
     }
+
     .slider-container input {
       pointer-events: auto;
     }
+
     .slider-container h2 {
       text-align: center;
       text-shadow: 0px 0px 4px black;
       color: white;
       margin: auto;
     }
+
     .slider-container .slider-guide {
       text-align: center;
       margin: auto;
     }
+
     .slider-container .slider-guide button {
       font-size: 20px;
       border: none;
       border-radius: 4px;
-      background-color: rgba(100,140,180,0.6);
+      background-color: rgba(100, 140, 180, 0.6);
       color: white;
       margin: .2em;
       pointer-events: auto;
     }
+
     .slider-container .slider-guide button.active {
       color: gray;
     }
+
     .slider-container span#year {
       text-shadow: 0px 0px 4px black;
       color: white;
@@ -120,14 +205,18 @@
       font-weight: bold;
       font-family: Arial, monospace, sans-serif;
     }
+
     input[type=range] {
       -webkit-appearance: none;
       margin: 1.2em 0;
       width: 100%;
+      background: transparent;
     }
+
     input[type=range]:focus {
       outline: none;
     }
+
     input[type=range]::-webkit-slider-runnable-track {
       width: 100%;
       height: 10px;
@@ -138,6 +227,7 @@
       border-radius: 5px;
       border: 0px solid #000000;
     }
+
     input[type=range]::-webkit-slider-thumb {
       box-shadow: 0px 0px 0px #000000;
       border: 2px solid #429BE8;
@@ -149,9 +239,11 @@
       -webkit-appearance: none;
       margin-top: -11px;
     }
+
     input[type=range]:focus::-webkit-slider-runnable-track {
       background: #429BE8;
     }
+
     input[type=range]::-moz-range-track {
       width: 100%;
       height: 10px;
@@ -162,6 +254,7 @@
       border-radius: 5px;
       border: 0px solid #000000;
     }
+
     input[type=range]::-moz-range-thumb {
       box-shadow: 0px 0px 0px #000000;
       border: 2px solid #429BE8;
@@ -171,6 +264,7 @@
       background: #FFFFFF;
       cursor: pointer;
     }
+
     input[type=range]::-ms-track {
       width: 100%;
       height: 10px;
@@ -180,18 +274,21 @@
       border-color: transparent;
       color: transparent;
     }
+
     input[type=range]::-ms-fill-lower {
       background: #429BE8;
       border: 0px solid #000000;
       border-radius: 10px;
       box-shadow: 0px 0px 0px #000000;
     }
+
     input[type=range]::-ms-fill-upper {
       background: #429BE8;
       border: 0px solid #000000;
       border-radius: 10px;
       box-shadow: 0px 0px 0px #000000;
     }
+
     input[type=range]::-ms-thumb {
       margin-top: 1px;
       box-shadow: 0px 0px 0px #000000;
@@ -202,9 +299,11 @@
       background: #FFFFFF;
       cursor: pointer;
     }
+
     input[type=range]:focus::-ms-fill-lower {
       background: #429BE8;
     }
+
     input[type=range]:focus::-ms-fill-upper {
       background: #429BE8;
     }
@@ -212,21 +311,32 @@
   <script src="//openlayers.org/en/v4.3.1/build/ol.js"></script>
   <title>Document</title>
   <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    (function(i, s, o, g, r, a, m) {
+      i['GoogleAnalyticsObject'] = r;
+      i[r] = i[r] || function() {
+        (i[r].q = i[r].q || []).push(arguments)
+      }, i[r].l = 1 * new Date();
+      a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0];
+      a.async = 1;
+      a.src = g;
+      m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
     ga('create', 'UA-74683419-3', 'auto');
     ga('send', 'pageview');
   </script>
 </head>
+
 <body>
   <div class="map-container">
     <div class="map" id="map"></div>
     <div class="info" id="info">
-      <div id="info-title"><ul><li>路線を選択してください</li></ul></div>
-      <hr/>
+      <div id="info-title">
+        <ul>
+          <li>路線を選択してください</li>
+        </ul>
+      </div>
       <small id="info-detail">事業者区分</small>
     </div>
     <div class="slider-container" id="slider-container">
@@ -237,45 +347,62 @@
         <button class="slider-button slider-ahead" data-year="1">&gt;</button>
         <button class="slider-button slider-ahead" data-year="5">&gt;&gt;</button>
       </div>
-      <input type="range" id="slider"/>
+      <input type="range" id="slider" />
     </div>
-  </div>
-  <div class="menu">
-    <div class="layer-container">
-      <div id="basemaps">
-        <h4>Basemaps</h4>
+    <div class="ol-control toggle-menu">
+      <button id="toggle-menu">M</button>
+    </div>
+    <div class="menu" id="menu">
+      <div class="menu-wrapper" id="menu-wrapper">
+        <div class="menu-wrapper-inner">
+          <span class="close-button" id="menu-close"></span>
+          <div class="layer-container">
+            <div id="basemaps">
+              <h4>Basemaps</h4>
+            </div>
+            <div id="overlays">
+              <h4>Overlays</h4>
+            </div>
+          </div>
+          <div class="menu-container">
+            <ul class="menus">
+              <li id="geolocation">現在地を表示</li>
+            </ul>
+            <h4>この地図について</h4>
+            <p>日本鉄道時系列地図は、国土交通省が提供する地図データ（国土数値情報・鉄道時系列）を表示した地図です。1950年から2017年までに存在した日本全国の鉄道路線を表示しています。表示データには誤差があります。</p>
+            <h4>使い方</h4>
+            <p>画面下のスライダーを動かすと、表示する年を変更することができます。</p>
+
+            <p>ベースマップには国土地理院の地理院タイルを使用しています。</p>
+            <dl>
+              <dt>傾斜量図（デフォルト）<small>地理院タイル</small></dt>
+              <dd>傾斜量を濃淡で表した地図です。</dd>
+            </dl>
+          </div>
+        </div>
       </div>
-      <div id="overlays">
-        <h4>Overlays</h4>
-      </div>
-    </div>
-    <div class="menu-container">
-      <ul class="menus">
-        <li id="geolocation">現在地を表示</li>
-      </ul>
-    </div>
-    <div class="debug-container">
-      <p id="debug-view"></p>
-      <p id="debug-select"></p>
     </div>
   </div>
   <script>
-
-  ;(()=>{
-    "use strict";
+    ;
+    (() => {
+      "use strict";
 
       // 地図のconfigオブジェクト
-/*
-      const config = {
-        zoom: {max: 16, min: 3}
-      };
-  */
+      /*
+            const config = {
+              zoom: {max: 16, min: 3}
+            };
+        */
       // スライダーの設定
 
       let years = [new Date().getFullYear()];
       const slider = document.getElementById("slider");
 
-      years.extent = {min: 1950, max: years[0]};
+      years.extent = {
+        min: 1950,
+        max: years[0]
+      };
 
       slider.setAttribute("min", years.extent.min);
       slider.setAttribute("max", years.extent.max);
@@ -283,10 +410,17 @@
       // permalinkの設定
 
       const defaults = {
-                        view: {zoom: 6, center: [140.6,36.5], rotation: 0},
-                        layers: {base: "slope", overlays: ["section", "station"]},
-                        year: years[0]
-                       };
+        view: {
+          zoom: 6,
+          center: [140.6, 36.5],
+          rotation: 0
+        },
+        layers: {
+          base: "slope",
+          overlays: ["section", "station"]
+        },
+        year: years[0]
+      };
 
       if (window.location.hash !== '') {
 
@@ -295,7 +429,7 @@
 
         if (parts.length > 0) {
           defaults.view.zoom = parseFloat(parts[0][0]);
-          defaults.view.center = [parseFloat(parts[0][1]),parseFloat(parts[0][2])];
+          defaults.view.center = [parseFloat(parts[0][1]), parseFloat(parts[0][2])];
           defaults.rotation = parseFloat(parts[0][3]);
         }
         if (parts.length > 1) {
@@ -318,12 +452,37 @@
       // mvtレイヤの属性別のスタイルを設定
 
       const styles = {
-                      shinkansen: {width: 4, color: "#0094ff", zIndex: 10, title: "新幹線"},
-                      jr: {width: 2.5, color: "#03d4d4", zIndex: 8, title: "JR・国鉄"},
-                      priway: {width: 2, color: "#cf0040", zIndex: 6, title: "私鉄"},
-                      pubway: {width: 2, color: "#f09a4c", zIndex: 4, title: "公営"},
-                      third: {width: 2, color: "#9f910e", zIndex: 2, title: "第三セクター"}
-                    };
+        shinkansen: {
+          width: 4,
+          color: "#0094ff",
+          zIndex: 10,
+          title: "新幹線"
+        },
+        jr: {
+          width: 2.5,
+          color: "#03d4d4",
+          zIndex: 8,
+          title: "JR・国鉄"
+        },
+        priway: {
+          width: 2,
+          color: "#cf0040",
+          zIndex: 6,
+          title: "私鉄"
+        },
+        pubway: {
+          width: 2,
+          color: "#f09a4c",
+          zIndex: 4,
+          title: "公営"
+        },
+        third: {
+          width: 2,
+          color: "#9f910e",
+          zIndex: 2,
+          title: "第三セクター"
+        }
+      };
 
       // ベースマップの設定
 
@@ -335,7 +494,9 @@
       const ort = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg",
-          attributions: new ol.Attribution({html: attributions.gsi})
+          attributions: new ol.Attribution({
+            html: attributions.gsi
+          })
         }),
         title: "写真",
         permalink: "ort",
@@ -345,7 +506,9 @@
       const relief = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/relief/" + "{z}/{x}/{y}.png",
-          attributions: new ol.Attribution({html: attributions.gsi})
+          attributions: new ol.Attribution({
+            html: attributions.gsi
+          })
         }),
         title: "色別標高図",
         permalink: "relief",
@@ -355,7 +518,9 @@
       const slope = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/slopemap/" + "{z}/{x}/{y}.png",
-          attributions: new ol.Attribution({html: attributions.gsi})
+          attributions: new ol.Attribution({
+            html: attributions.gsi
+          })
         }),
         title: "傾斜量図",
         permalink: "slope",
@@ -365,7 +530,9 @@
       const cjpale = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/pale/" + "{z}/{x}/{y}.png",
-          attributions: new ol.Attribution({html: attributions.gsi})
+          attributions: new ol.Attribution({
+            html: attributions.gsi
+          })
         }),
         title: "地理院地図",
         permalink: "cjpale",
@@ -375,15 +542,24 @@
       const cjblank = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/blank/" + "{z}/{x}/{y}.png",
-          attributions: new ol.Attribution({html: attributions.gsi})
+          attributions: new ol.Attribution({
+            html: attributions.gsi
+          })
         }),
         title: "白地図",
         permalink: "cjblank",
         visible: false
       });
 
+      const allblacks = new ol.layer.Group({
+        title: "単色黒",
+        permalink: "allblacks",
+        visible: false,
+        opacity: 0
+      });
+
       const basemaps = new ol.layer.Group({
-        layers: [ort, slope, cjpale, relief, cjblank]
+        layers: [ort, slope, cjpale, relief, cjblank, allblacks]
       });
 
       // mvtレイヤの設定
@@ -394,7 +570,9 @@
             layers: ["section"]
           }),
           url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
-          attributions: new ol.Attribution({html: attributions.ksj})
+          attributions: new ol.Attribution({
+            html: attributions.ksj
+          })
         }),
         title: "鉄道路線",
         permalink: "section",
@@ -409,7 +587,9 @@
             layers: ["station"]
           }),
           url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
-          attributions: new ol.Attribution({html: attributions.ksj})
+          attributions: new ol.Attribution({
+            html: attributions.ksj
+          })
         }),
         title: "駅",
         permalink: "station",
@@ -436,7 +616,11 @@
 
       const map = new ol.Map({
         target: "map",
-        controls: ol.control.defaults({attribution: false}).extend([new ol.control.Attribution({collapsible: false})]),
+        controls: ol.control.defaults({
+          attribution: false
+        }).extend([new ol.control.Attribution({
+          collapsible: false
+        })]),
         view: view,
         layers: [basemaps, overlays]
       });
@@ -461,17 +645,27 @@
         })
       }));
 
-      document.getElementById("geolocation").addEventListener("click", function(evt){
-        geolocation.setTracking(true);
-        evt.target.classList.add("active");
-      });
+      document.getElementById("geolocation")
+              .addEventListener("click", function(evt) {
+                if(!geolocation.getTracking()) {
+                  geolocation.setTracking(true);
+                  evt.target.classList.add("active");
+                } else {
+                  view.setCenter(geolocation.getPosition());
+                }
+              });
 
-      geolocation.once("change:position", function(){
+      geolocation.once("change:position", function() {
         view.setCenter(geolocation.getPosition());
         view.setZoom(12);
         positionFeature.setGeometry(geolocation.getPosition() ?
           new ol.geom.Point(geolocation.getPosition()) : null);
-        new ol.layer.Vector({map: map, source: new ol.source.Vector({features: [positionFeature]})});
+        new ol.layer.Vector({
+          map: map,
+          source: new ol.source.Vector({
+            features: [positionFeature]
+          })
+        });
       });
 
       geolocation.on('change:position', function() {
@@ -482,18 +676,20 @@
 
       // 地物選択の設定
 
-      const selected = {history: []};
+      const selected = {
+        history: []
+      };
 
-      map.on("singleclick", function(evt){
-        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature){
+      map.on("singleclick", function(evt) {
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
           return feature;
         }, {
-          layerFilter: function(layer){
+          layerFilter: function(layer) {
             return layer.get("title") === "鉄道路線";
           },
           hitTolerance: 3
         });
-        if(feature){
+        if (feature) {
           selected.history.push(feature);
           selected.current = feature;
           document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
@@ -509,13 +705,39 @@
         }
       });
 
+      map.on("pointermove", function(evt) {
+        if (evt.dragging) return;
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
+          return feature;
+        }, {
+          layerFilter: function(layer) {
+            return layer.get("title") === "鉄道路線";
+          },
+          hitTolerance: 3
+        });
+
+        if (feature) {
+          document.getElementById(map.getTarget()).style.cursor = "pointer";
+          if (selected.current === undefined) {
+            document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
+            document.getElementById("info-detail").innerHTML = createStyle(feature).title;
+          }
+        } else {
+          document.getElementById(map.getTarget()).style.cursor = "";
+          if (selected.current === undefined) {
+            document.getElementById("info-title").innerHTML = "<ul><li>路線を選択してください</li></ul>";
+            document.getElementById("info-detail").innerHTML = "事業者区分";
+          }
+        }
+      });
+
       map.on("moveend", updatePermalink);
 
       // permalinkのupdate
 
       let shouldUpdate = true;
 
-      function updatePermalink(){
+      function updatePermalink() {
         if (!shouldUpdate) {
           shouldUpdate = true;
           return;
@@ -525,21 +747,27 @@
           zoom: view.getZoom(),
           rotation: view.getRotation()
         };
-        const currentYear = {current: years[years.length-1], years: years};
+        const currentYear = {
+          current: years[years.length - 1],
+          years: years
+        };
         let currentBase;
-        basemaps.getLayers().forEach(function(lyr, i){
-          if(!lyr.getVisible()) return;
+        basemaps.getLayers().forEach(function(lyr, i) {
+          if (!lyr.getVisible()) return;
           currentBase = lyr.get("permalink");
         });
         const currentOverlay = [];
-        overlays.getLayers().forEach(function(lyr, i){
-          if(!lyr.getVisible()) return;
+        overlays.getLayers().forEach(function(lyr, i) {
+          if (!lyr.getVisible()) return;
           currentOverlay.push(lyr.get("permalink"));
         });
         const state = {
           view: currentView,
           year: currentYear,
-          layers: {base: currentBase, overlays: currentOverlay}
+          layers: {
+            base: currentBase,
+            overlays: currentOverlay
+          }
         };
 
         const hash = "#" + [
@@ -562,10 +790,10 @@
         years = event.state.year.years;
         updateYear(event.state.year.current);
 
-        basemaps.getLayers().forEach(function(lyr, i){
+        basemaps.getLayers().forEach(function(lyr, i) {
           lyr.setVisible(lyr.get("permalink") === event.state.layers.base);
         });
-        overlays.getLayers().forEach(function(lyr, i){
+        overlays.getLayers().forEach(function(lyr, i) {
           /*
           lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
           */
@@ -576,28 +804,28 @@
 
       // スライダーのイベントの設定
 
-      slider.addEventListener("change", function(){
+      slider.addEventListener("change", function() {
         const neu = parseInt(slider.value, 10);
         years.push(neu);
 
-        updateYear(years[years.length-1]);
+        updateYear(years[years.length - 1]);
         updatePermalink();
       });
 
       //スライダーボタンの設定
 
       const buttons = document.querySelectorAll(".slider-button");
-      for (const x of buttons){
-        x.addEventListener("click", function(evt){
-          const neu = years[years.length-1] + parseInt(evt.target.dataset.year, 10);
-          if(neu <= years.extent.min){
+      for (const x of buttons) {
+        x.addEventListener("click", function(evt) {
+          const neu = years[years.length - 1] + parseInt(evt.target.dataset.year, 10);
+          if (neu <= years.extent.min) {
             years.push(years.extent.min);
-          } else if(neu >= years.extent.max){
+          } else if (neu >= years.extent.max) {
             years.push(years.extent.max);
           } else {
             years.push(neu);
           }
-          updateYear(years[years.length-1]);
+          updateYear(years[years.length - 1]);
 
           updatePermalink();
 
@@ -614,11 +842,12 @@
 
       // レイヤメニューの設定
 
-      ;(()=>{
-        basemaps.getLayers().forEach(function(lyr, i){
+      ;
+      (() => {
+        basemaps.getLayers().forEach(function(lyr, i) {
           lyr.setVisible(lyr.get("permalink") === defaults.layers.base);
         });
-        overlays.getLayers().forEach(function(lyr, i){
+        overlays.getLayers().forEach(function(lyr, i) {
           /*
           lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
           */
@@ -628,12 +857,12 @@
         const baseContainer = document.createElement("ul");
         baseContainer.setAttribute("class", "layer-menu base-menu");
 
-        for (const x of basemaps.getLayers().getArray()){
+        for (const x of basemaps.getLayers().getArray()) {
           const botan = document.createElement("li");
           botan.innerHTML = x.get("title");
-          if(x.getVisible()) botan.classList.add("active");
+          if (x.getVisible()) botan.classList.add("active");
 
-          botan.addEventListener("click", function(evt){
+          botan.addEventListener("click", function(evt) {
             basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
             for (const ul of document.querySelectorAll("ul.base-menu li")) {
               ul.classList.remove("active");
@@ -649,14 +878,14 @@
         const overlayContainer = document.createElement("ul");
         overlayContainer.setAttribute("class", "layer-menu overlay-menu");
 
-        for (const x of overlays.getLayers().getArray()){
+        for (const x of overlays.getLayers().getArray()) {
           const botan = document.createElement("li");
           botan.innerHTML = x.get("title");
-          if(x.getVisible()) botan.classList.add("active");
+          if (x.getVisible()) botan.classList.add("active");
 
-          botan.addEventListener("click", function(){
+          botan.addEventListener("click", function() {
             x.setVisible(!x.getVisible());
-            if(x.getVisible()) {
+            if (x.getVisible()) {
               botan.classList.add("active");
             } else {
               botan.classList.remove("active");
@@ -669,43 +898,67 @@
 
       })();
 
+      // メニューの設定
+
+      document.getElementById("toggle-menu")
+              .addEventListener("click", function(){
+                document.getElementById("menu").style.display = "inline-block";
+              });
+
+      document.getElementById("menu")
+              .addEventListener("singleclick", function(evt){
+                evt.target.style.display = "none";
+              });
+
+      document.getElementById("menu-close")
+              .addEventListener("click", function(){
+                document.getElementById('menu').style.display = "none";
+              });
+
       // スタイルの設定
 
-      function sectionStyleFunction(feature, resolution){
+      function sectionStyleFunction(feature, resolution) {
         return [
           new ol.style.Style({
-                zIndex: 0,
-                stroke: new ol.style.Stroke({
-                  width: Math.min(12, createStyle(feature).width * baiBain(resolution)) + 2,
-                  color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? "black" : "rgba(255,255,255,0)"
-                })
+            zIndex: 0,
+            stroke: new ol.style.Stroke({
+              width: Math.min(12, createStyle(feature).width * baiBain(resolution)) + 2,
+              color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "black" : "rgba(255,255,255,0)"
+            })
           }),
           new ol.style.Style({
-                zIndex: createStyle(feature).zIndex,
-                stroke: new ol.style.Stroke({
-                  width: Math.min(12, createStyle(feature).width * baiBain(resolution)) ,
-                  color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
-                })
+            zIndex: createStyle(feature).zIndex,
+            stroke: new ol.style.Stroke({
+              width: Math.min(12, createStyle(feature).width * baiBain(resolution)),
+              color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+            })
           })
         ];
       }
 
-      function selectedSection(feature, resolution){
-        if(feature.get("N05_006") === selected.current.get("N05_006")){
+      function selectedSection(feature, resolution) {
+        if (feature.get("N05_006") === selected.current.get("N05_006")) {
           return [
             new ol.style.Style({
-                  zIndex: 11,
-                  stroke: new ol.style.Stroke({
-                    width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 8 : 10,
-                    color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? "black" : "rgba(255,255,255,0)"
-                  })
+              zIndex: 15,
+              stroke: new ol.style.Stroke({
+                width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 10 : 12,
+                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "white" : "rgba(255,255,255,0)"
+              })
             }),
             new ol.style.Style({
-                  zIndex: 12,
-                  stroke: new ol.style.Stroke({
-                    width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) : 4,
-                    color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
-                  })
+              zIndex: 20,
+              stroke: new ol.style.Stroke({
+                width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 8 : 10,
+                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "black" : "rgba(255,255,255,0)"
+              })
+            }),
+            new ol.style.Style({
+              zIndex: 25,
+              stroke: new ol.style.Stroke({
+                width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) : 4,
+                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+              })
             })
           ];
         } else {
@@ -714,24 +967,24 @@
 
       }
 
-      function stationStyleFunction(feature, resolution){
+      function stationStyleFunction(feature, resolution) {
         let sty = [new ol.style.Style({
-              zIndex: 0,
-              image: new ol.style.Circle({
-                radius: 3,
-                fill: new ol.style.Fill({
-                  color: "white"
-                }),
-                stroke: new ol.style.Stroke({
-                  width: 1,
-                  color: "black"
-                })
-              })
+          zIndex: 0,
+          image: new ol.style.Circle({
+            radius: 3,
+            fill: new ol.style.Fill({
+              color: "white"
+            }),
+            stroke: new ol.style.Stroke({
+              width: 1,
+              color: "black"
+            })
+          })
         })];
-        if(parseInt(feature.get("N05_005b"), 10) > years[years.length-1] || parseInt(feature.get("N05_005e"), 10) < years[years.length-1] || resolution > 20) {
+        if (parseInt(feature.get("N05_005b"), 10) > years[years.length - 1] || parseInt(feature.get("N05_005e"), 10) < years[years.length - 1] || resolution > 20) {
           sty[0].getImage().setOpacity(0);
           return sty[0];
-        } else if(resolution < 4.78) {
+        } else if (resolution < 4.78) {
           sty.push(new ol.style.Style({
             text: new ol.style.Text({
               zIndex: 11,
@@ -739,33 +992,38 @@
               font: "10px sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? feature.get("N05_011") : undefined,
-              fill: new ol.style.Fill({color: "black"}),
-              stroke: new ol.style.Stroke({color: "white", width: 3})
+              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
+              fill: new ol.style.Fill({
+                color: "black"
+              }),
+              stroke: new ol.style.Stroke({
+                color: "white",
+                width: 3
+              })
             })
           }));
         }
         return sty;
       }
 
-      function selectedStation(feature, resolution){
-        if(feature.get("N05_003") === selected.current.get("N05_003") && feature.get("N05_002") === selected.current.get("N05_002")){
+      function selectedStation(feature, resolution) {
+        if (feature.get("N05_003") === selected.current.get("N05_003") && feature.get("N05_002") === selected.current.get("N05_002")) {
           let sty = [
             new ol.style.Style({
-                  zIndex: 10,
-                  image: new ol.style.Circle({
-                    radius: 5,
-                    fill: new ol.style.Fill({
-                      color: "white"
-                    }),
-                    stroke: new ol.style.Stroke({
-                      width: 2,
-                      color: "black"
-                    })
-                  })
+              zIndex: 10,
+              image: new ol.style.Circle({
+                radius: 5,
+                fill: new ol.style.Fill({
+                  color: "white"
+                }),
+                stroke: new ol.style.Stroke({
+                  width: 2,
+                  color: "black"
+                })
+              })
             })
           ];
-          if(parseInt(feature.get("N05_005b"), 10) > years[years.length-1] || parseInt(feature.get("N05_005e"), 10) < years[years.length-1]) {
+          if (parseInt(feature.get("N05_005b"), 10) > years[years.length - 1] || parseInt(feature.get("N05_005e"), 10) < years[years.length - 1]) {
             sty[0].getImage().setOpacity(0);
           }
           sty.push(new ol.style.Style({
@@ -775,9 +1033,14 @@
               font: "12px sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? feature.get("N05_011") : undefined,
-              fill: new ol.style.Fill({color: "black"}),
-              stroke: new ol.style.Stroke({color: "white", width: 3})
+              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
+              fill: new ol.style.Fill({
+                color: "black"
+              }),
+              stroke: new ol.style.Stroke({
+                color: "white",
+                width: 3
+              })
             })
           }));
           return sty;
@@ -786,19 +1049,19 @@
         }
       }
 
-      function createStyle(feature){
+      function createStyle(feature) {
         return feature.get("N05_001") === "1" ? styles.shinkansen :
-                feature.get("N05_001") === "2" ? styles.jr :
-                feature.get("N05_001") === "3" ? styles.pubway :
-                feature.get("N05_001") === "4" ? styles.priway : styles.third;
+          feature.get("N05_001") === "2" ? styles.jr :
+          feature.get("N05_001") === "3" ? styles.pubway :
+          feature.get("N05_001") === "4" ? styles.priway : styles.third;
       }
 
-      function baiBain(resolution){
+      function baiBain(resolution) {
         return resolution < 80 ? 80 / resolution : 1;
       }
 
     })();
-
   </script>
 </body>
+
 </html>
