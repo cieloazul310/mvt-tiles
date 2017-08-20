@@ -254,9 +254,10 @@
         <li id="geolocation">現在地を表示</li>
       </ul>
     </div>
-  <div class="debug-container">
-    <p id="debug-view"></p>
-    <p id="debug-select"></p>
+    <div class="debug-container">
+      <p id="debug-view"></p>
+      <p id="debug-select"></p>
+    </div>
   </div>
   <script>
 
@@ -460,9 +461,9 @@
         })
       }));
 
-      document.getElementById("geolocation").addEventListener("click", function(){
+      document.getElementById("geolocation").addEventListener("click", function(evt){
         geolocation.setTracking(true);
-        this.classList.add("active");
+        evt.target.classList.add("active");
       });
 
       geolocation.once("change:position", function(){
@@ -554,14 +555,22 @@
         if (event.state === null) {
           return;
         }
-        console.log(event);
-        console.log(event.state.year);
-        console.log(years);
         view.setZoom(event.state.view.zoom);
         view.setCenter(ol.proj.fromLonLat(event.state.view.center));
         view.setRotation(event.state.view.rotation);
+
         years = event.state.year.years;
         updateYear(event.state.year.current);
+
+        basemaps.getLayers().forEach(function(lyr, i){
+          lyr.setVisible(lyr.get("permalink") === event.state.layers.base);
+        });
+        overlays.getLayers().forEach(function(lyr, i){
+          /*
+          lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
+          */
+          lyr.setVisible(event.state.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
+        });
         shouldUpdate = false;
       });
 
@@ -579,8 +588,8 @@
 
       const buttons = document.querySelectorAll(".slider-guide button");
       for (const x of buttons){
-        x.addEventListener("click", function(){
-          const neu = years[years.length-1] + parseInt(this.dataset.year, 10);
+        x.addEventListener("click", function(evt){
+          const neu = years[years.length-1] + parseInt(evt.target.dataset.year, 10);
           if(neu <= years.extent.min){
             years.push(years.extent.min);
           } else if(neu >= years.extent.max){
@@ -624,13 +633,13 @@
           botan.innerHTML = x.get("title");
           if(x.getVisible()) botan.classList.add("active");
 
-          botan.addEventListener("click", function(){
+          botan.addEventListener("click", function(evt){
             basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
             for (const ul of document.querySelectorAll("ul.base-menu li")) {
               ul.classList.remove("active");
             }
             x.setVisible(true);
-            this.classList.add("active");
+            evt.target.classList.add("active");
             updatePermalink();
           });
           baseContainer.appendChild(botan);
