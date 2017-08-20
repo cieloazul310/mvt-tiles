@@ -6,44 +6,80 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <link rel="stylesheet" href="//openlayers.org/en/v4.3.1/css/ol.css">
   <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
     .map-container {
       position: relative;
       width: 100%;
+      height: 520px;
+      margin: 0;
+      padding: 0;
     }
     .map {
       width: 100%;
-      height: 480px;
+      height: 100%;
       background-color: black;
+      margin: 0;
+      padding: 0;
     }
     .map-container .info {
       position: absolute;
       right: 0.5em;
       top: 0.5em;
-      background-color: rgba(253,253,255,0.9);
-      border-radius: 4px;
-      padding: .5em;
-      max-width: 50%;
+      background-color: white;
+      border-radius: 2px;
+      padding: .4em;
+      max-width: 70%;
       min-width: 120px;
-      text-align: right;
+      text-align: center;
+      -moz-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+      -webkit-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+      -o-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+      -ms-box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    }
+    .info ul{
+      padding: 0;
+    }
+    .info li{
+      margin: .2em;
+      display: inline-block;
     }
     .ol-rotate {
       top: 8.5em;
       left: 0.5em;
       right: auto;
     }
-    .layer-container button{
+    .layer-container ul{
+      padding: 0;
+    }
+    .layer-container li{
       color: white;
       font-weight: bold;
       background-color: gray;
-      padding: .8em;
-      margin: .1em;
       border: none;
-      border-radius: 8px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
+      border-radius: 2px;
+      cursor: pointer;
+      padding: 0.2em;
     }
-    .layer-container button.active{
+    .layer-container li.active{
+      background-color: skyblue;
+    }
+    .menu-container ul{
+      padding: 0;
+    }
+    .menu-container li{
+      color: white;
+      font-weight: bold;
+      background-color: gray;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      padding: 0.2em;
+    }
+    .menu-container li.active{
       background-color: skyblue;
     }
     .slider-container {
@@ -77,11 +113,12 @@
     .slider-container .slider-guide button.active {
       color: gray;
     }
-    span#year {
+    .slider-container span#year {
       text-shadow: 0px 0px 4px black;
       color: white;
-      font-size: 24px;
+      font-size: 32px;
       font-weight: bold;
+      font-family: Arial, monospace, sans-serif;
     }
     input[type=range] {
       -webkit-appearance: none;
@@ -93,7 +130,7 @@
     }
     input[type=range]::-webkit-slider-runnable-track {
       width: 100%;
-      height: 8px;
+      height: 10px;
       cursor: pointer;
       animate: 0.2s;
       box-shadow: 0px 0px 0px #000000;
@@ -128,8 +165,8 @@
     input[type=range]::-moz-range-thumb {
       box-shadow: 0px 0px 0px #000000;
       border: 2px solid #429BE8;
-      height: 30px;
-      width: 15px;
+      height: 26px;
+      width: 12px;
       border-radius: 5px;
       background: #FFFFFF;
       cursor: pointer;
@@ -159,8 +196,8 @@
       margin-top: 1px;
       box-shadow: 0px 0px 0px #000000;
       border: 2px solid #429BE8;
-      height: 30px;
-      width: 15px;
+      height: 26px;
+      width: 12px;
       border-radius: 5px;
       background: #FFFFFF;
       cursor: pointer;
@@ -174,57 +211,117 @@
   </style>
   <script src="//openlayers.org/en/v4.3.1/build/ol.js"></script>
   <title>Document</title>
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-74683419-3', 'auto');
+    ga('send', 'pageview');
+  </script>
 </head>
 <body>
   <div class="map-container">
     <div class="map" id="map"></div>
-    <div class="info" id="info">路線をクリックしてください</div>
+    <div class="info" id="info">
+      <div id="info-title"><ul><li>路線を選択してください</li></ul></div>
+      <hr/>
+      <small id="info-detail">事業者区分</small>
+    </div>
     <div class="slider-container" id="slider-container">
       <div class="slider-guide">
-        <button data-year="-5">&lt;&lt;</button>
-        <button data-year="-1">&lt;</button>
+        <button class="slider-button slider-back" data-year="-5">&lt;&lt;</button>
+        <button class="slider-button slider-back" data-year="-1">&lt;</button>
         <span id="year"></span>
-        <button data-year="1">&gt;</button>
-        <button data-year="5">&gt;&gt;</button>
+        <button class="slider-button slider-ahead" data-year="1">&gt;</button>
+        <button class="slider-button slider-ahead" data-year="5">&gt;&gt;</button>
       </div>
       <input type="range" id="slider"/>
     </div>
   </div>
-  <div class="layer-container">
-    <div id="basemaps"></div>
-    <div id="overlays"></div>
-  </div>
-  <div class="menu-container">
-    <button id="geolocation">現在地を表示</button>
-  </div>
+  <div class="menu">
+    <div class="layer-container">
+      <div id="basemaps">
+        <h4>Basemaps</h4>
+      </div>
+      <div id="overlays">
+        <h4>Overlays</h4>
+      </div>
+    </div>
+    <div class="menu-container">
+      <ul class="menus">
+        <li id="geolocation">現在地を表示</li>
+      </ul>
+    </div>
   <div class="debug-container">
     <p id="debug-view"></p>
     <p id="debug-select"></p>
   </div>
   <script>
 
-  (function(){
+  ;(()=>{
     "use strict";
+
+      // 地図のconfigオブジェクト
+/*
+      const config = {
+        zoom: {max: 16, min: 3}
+      };
+  */
       // スライダーの設定
 
-      const years = [new Date().getFullYear()];
+      let years = [new Date().getFullYear()];
       const slider = document.getElementById("slider");
 
       years.extent = {min: 1950, max: years[0]};
 
-      document.getElementById("year").innerHTML = years[0];
       slider.setAttribute("min", years.extent.min);
       slider.setAttribute("max", years.extent.max);
-      slider.setAttribute("value", years[0]);
+
+      // permalinkの設定
+
+      const defaults = {
+                        view: {zoom: 6, center: [140.6,36.5], rotation: 0},
+                        layers: {base: "slope", overlays: ["section", "station"]},
+                        year: years[0]
+                       };
+
+      if (window.location.hash !== '') {
+
+        const hash = window.location.hash.replace('#', '');
+        const parts = hash.split('&').map(str => str.split("/"));
+
+        if (parts.length > 0) {
+          defaults.view.zoom = parseFloat(parts[0][0]);
+          defaults.view.center = [parseFloat(parts[0][1]),parseFloat(parts[0][2])];
+          defaults.rotation = parseFloat(parts[0][3]);
+        }
+        if (parts.length > 1) {
+          defaults.year = parseInt(parts[1][0]);
+          years.push(defaults.year);
+        }
+        if (parts.length > 2) {
+          defaults.layers.base = parts[2][0];
+        }
+        if (parts.length > 3) {
+          defaults.layers.overlays = parts[3];
+        }
+        console.log(parts);
+        console.log(defaults);
+      }
+
+      document.getElementById("year").innerHTML = defaults.year;
+      slider.value = defaults.year;
 
       // mvtレイヤの属性別のスタイルを設定
 
       const styles = {
-                      shinkansen: {width: 4, color: "#0094ff", zIndex: 10},
-                      jr: {width: 2.5, color: "#03d4d4", zIndex: 8},
-                      priway: {width: 2, color: "#cf0040", zIndex: 6},
-                      pubway: {width: 2, color: "#f09a4c", zIndex: 4},
-                      third: {width: 2, color: "#9f910e", zIndex: 2}
+                      shinkansen: {width: 4, color: "#0094ff", zIndex: 10, title: "新幹線"},
+                      jr: {width: 2.5, color: "#03d4d4", zIndex: 8, title: "JR・国鉄"},
+                      priway: {width: 2, color: "#cf0040", zIndex: 6, title: "私鉄"},
+                      pubway: {width: 2, color: "#f09a4c", zIndex: 4, title: "公営"},
+                      third: {width: 2, color: "#9f910e", zIndex: 2, title: "第三セクター"}
                     };
 
       // ベースマップの設定
@@ -240,6 +337,7 @@
           attributions: new ol.Attribution({html: attributions.gsi})
         }),
         title: "写真",
+        permalink: "ort",
         visible: false
       });
 
@@ -249,6 +347,7 @@
           attributions: new ol.Attribution({html: attributions.gsi})
         }),
         title: "色別標高図",
+        permalink: "relief",
         visible: false
       });
 
@@ -258,6 +357,7 @@
           attributions: new ol.Attribution({html: attributions.gsi})
         }),
         title: "傾斜量図",
+        permalink: "slope",
         visible: true
       });
 
@@ -267,6 +367,7 @@
           attributions: new ol.Attribution({html: attributions.gsi})
         }),
         title: "地理院地図",
+        permalink: "cjpale",
         visible: false
       });
 
@@ -276,6 +377,7 @@
           attributions: new ol.Attribution({html: attributions.gsi})
         }),
         title: "白地図",
+        permalink: "cjblank",
         visible: false
       });
 
@@ -294,8 +396,8 @@
           attributions: new ol.Attribution({html: attributions.ksj})
         }),
         title: "鉄道路線",
+        permalink: "section",
         visible: true,
-        overlaps: false,
         opacity: 0.6,
         style: sectionStyleFunction
       });
@@ -309,8 +411,8 @@
           attributions: new ol.Attribution({html: attributions.ksj})
         }),
         title: "駅",
-        visible: true,/*
-        overlaps: false,*/
+        permalink: "station",
+        visible: true,
         maxResolution: 1000,
         style: stationStyleFunction
       });
@@ -322,10 +424,11 @@
       // viewオブジェクト
 
       const view = new ol.View({
-        center: ol.proj.fromLonLat([140.6,36.5]),
-        zoom: 6,
+        center: ol.proj.fromLonLat(defaults.view.center),
+        zoom: defaults.view.zoom,
         maxZoom: 16,
-        minZoom: 3
+        minZoom: 3,
+        rotation: defaults.view.rotation
       });
 
       // mapオブジェクト
@@ -358,8 +461,8 @@
       }));
 
       document.getElementById("geolocation").addEventListener("click", function(){
-        console.log("Geolocation now on!");
         geolocation.setTracking(true);
+        this.classList.add("active");
       });
 
       geolocation.once("change:position", function(){
@@ -392,41 +495,92 @@
         if(feature){
           selected.history.push(feature);
           selected.current = feature;
-          document.getElementById("info").innerHTML = feature.get("N05_003") + feature.get("N05_002");
+          document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
+          document.getElementById("info-detail").innerHTML = createStyle(feature).title;
           section.setStyle(selectedSection);
           station.setStyle(selectedStation);
         } else {
           selected.current = undefined;
-          document.getElementById("info").innerHTML = "路線を選択してください。";
+          document.getElementById("info-title").innerHTML = "<ul><li>路線を選択してください</li></ul>";
+          document.getElementById("info-detail").innerHTML = "事業者区分";
           section.setStyle(sectionStyleFunction);
           station.setStyle(stationStyleFunction);
         }
-        document.getElementById("debug-select").innerHTML = [selected.current.get("N05_002"), selected.current.get("N05_003"), selected.current.get("N05_006")].join(", ");
       });
 
-      // debugイベントの設定
+      map.on("moveend", updatePermalink);
 
-      view.on("change", function(evt){
-        document.getElementById("debug-view").innerHTML = "center:" +  ol.proj.toLonLat(view.getCenter()).join(",") + " zoom:" + view.getZoom() + " resolution: " + view.getResolution();
+      // permalinkのupdate
+
+      let shouldUpdate = true;
+
+      function updatePermalink(){
+        if (!shouldUpdate) {
+          shouldUpdate = true;
+          return;
+        }
+        const currentView = {
+          center: ol.proj.toLonLat(view.getCenter()),
+          zoom: view.getZoom(),
+          rotation: view.getRotation()
+        };
+        const currentYear = {current: years[years.length-1], years: years};
+        let currentBase;
+        basemaps.getLayers().forEach(function(lyr, i){
+          if(!lyr.getVisible()) return;
+          currentBase = lyr.get("permalink");
+        });
+        const currentOverlay = [];
+        overlays.getLayers().forEach(function(lyr, i){
+          if(!lyr.getVisible()) return;
+          currentOverlay.push(lyr.get("permalink"));
+        });
+        const state = {
+          view: currentView,
+          year: currentYear,
+          layers: {base: currentBase, overlays: currentOverlay}
+        };
+
+        const hash = "#" + [
+          [state.view.zoom, state.view.center[0], state.view.center[1], state.view.rotation].map(d => d.toFixed(6)).join("/"),
+          state.year.current,
+          state.layers.base,
+          state.layers.overlays.join("/")
+        ].join("&");
+        window.history.pushState(state, 'map', hash);
+      }
+
+      window.addEventListener('popstate', function(event) {
+        if (event.state === null) {
+          return;
+        }
+        console.log(event);
+        console.log(event.state.year);
+        console.log(years);
+        view.setZoom(event.state.view.zoom);
+        view.setCenter(ol.proj.fromLonLat(event.state.view.center));
+        view.setRotation(event.state.view.rotation);
+        years = event.state.year.years;
+        updateYear(event.state.year.current);
+        shouldUpdate = false;
       });
 
       // スライダーのイベントの設定
 
       slider.addEventListener("change", function(){
-        const neu = parseInt(slider.value);
+        const neu = parseInt(slider.value, 10);
         years.push(neu);
 
-        slider.setAttribute("value", years[years.length-1]);
-        document.getElementById("year").innerHTML = years[years.length-1];
-        section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);
-        station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
+        updateYear(years[years.length-1]);
+        updatePermalink();
       });
 
-      //ボタンの設定
+      //スライダーボタンの設定
+
       const buttons = document.querySelectorAll(".slider-guide button");
-      for (let x of buttons){
+      for (const x of buttons){
         x.addEventListener("click", function(){
-          const neu = years[years.length-1] + parseInt(this.dataset.year);
+          const neu = years[years.length-1] + parseInt(this.dataset.year, 10);
           if(neu <= years.extent.min){
             years.push(years.extent.min);
           } else if(neu >= years.extent.max){
@@ -434,49 +588,74 @@
           } else {
             years.push(neu);
           }
-          slider.value = years[years.length-1];
-          slider.setAttribute("value", years[years.length-1]);
-          document.getElementById("year").innerHTML = years[years.length-1];
-          section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);
-          station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
+          updateYear(years[years.length-1]);
+
+          updatePermalink();
 
         });
+      }
+
+      function updateYear(num) {
+        slider.value = num;
+        document.getElementById("year").innerHTML = num;
+        section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);
+        station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
       }
 
 
       // レイヤメニューの設定
 
-      (function(){
+      ;(()=>{
+        basemaps.getLayers().forEach(function(lyr, i){
+          lyr.setVisible(lyr.get("permalink") === defaults.layers.base);
+        });
+        overlays.getLayers().forEach(function(lyr, i){
+          /*
+          lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
+          */
+          lyr.setVisible(defaults.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
+        });
 
-        for (let x of basemaps.getLayers().getArray()){
-          let button = document.createElement("button");
-          button.innerHTML = x.get("title");
-          if(x.getVisible()) button.classList.add("active");
+        const baseContainer = document.createElement("ul");
+        baseContainer.setAttribute("class", "layer-menu base-menu");
 
-          button.addEventListener("click", function(){
-            for (let y of basemaps.getLayers().getArray()){
-              y.setVisible(false);
+        for (const x of basemaps.getLayers().getArray()){
+          const botan = document.createElement("li");
+          botan.innerHTML = x.get("title");
+          if(x.getVisible()) botan.classList.add("active");
+
+          botan.addEventListener("click", function(){
+            basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
+            for (const ul of document.querySelectorAll("ul.base-menu li")) {
+              ul.classList.remove("active");
             }
             x.setVisible(true);
+            this.classList.add("active");
+            updatePermalink();
           });
-
-          document.getElementById("basemaps").appendChild(button);
+          baseContainer.appendChild(botan);
+          document.getElementById("basemaps").appendChild(baseContainer);
         }
 
-        for (let x of overlays.getLayers().getArray()){
-          let button = document.createElement("button");
-          button.innerHTML = x.get("title");
-          if(x.getVisible()) button.classList.add("active");
-          button.addEventListener("click", function(){
+        const overlayContainer = document.createElement("ul");
+        overlayContainer.setAttribute("class", "layer-menu overlay-menu");
+
+        for (const x of overlays.getLayers().getArray()){
+          const botan = document.createElement("li");
+          botan.innerHTML = x.get("title");
+          if(x.getVisible()) botan.classList.add("active");
+
+          botan.addEventListener("click", function(){
             x.setVisible(!x.getVisible());
             if(x.getVisible()) {
-              button.classList.add("active");
+              botan.classList.add("active");
             } else {
-              button.classList.remove("active");
+              botan.classList.remove("active");
             }
+            updatePermalink();
           });
-
-          document.getElementById("overlays").appendChild(button);
+          overlayContainer.appendChild(botan);
+          document.getElementById("overlays").appendChild(overlayContainer);
         }
 
       })();
@@ -489,14 +668,14 @@
                 zIndex: 0,
                 stroke: new ol.style.Stroke({
                   width: Math.min(12, createStyle(feature).width * baiBain(resolution)) + 2,
-                  color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? "white" : "rgba(255,255,255,0)"
+                  color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? "black" : "rgba(255,255,255,0)"
                 })
           }),
           new ol.style.Style({
                 zIndex: createStyle(feature).zIndex,
                 stroke: new ol.style.Stroke({
                   width: Math.min(12, createStyle(feature).width * baiBain(resolution)) ,
-                  color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+                  color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
                 })
           })
         ];
@@ -508,15 +687,15 @@
             new ol.style.Style({
                   zIndex: 11,
                   stroke: new ol.style.Stroke({
-                    width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 6 : 8,
-                    color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? "black" : "rgba(255,255,255,0)"
+                    width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 8 : 10,
+                    color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? "black" : "rgba(255,255,255,0)"
                   })
             }),
             new ol.style.Style({
                   zIndex: 12,
                   stroke: new ol.style.Stroke({
                     width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) : 4,
-                    color: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+                    color: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? createStyle(feature).color : "rgba(255,255,255,0)"
                   })
             })
           ];
@@ -527,21 +706,35 @@
       }
 
       function stationStyleFunction(feature, resolution){
-        let sty = new ol.style.Style({
+        let sty = [new ol.style.Style({
               zIndex: 0,
               image: new ol.style.Circle({
                 radius: 3,
                 fill: new ol.style.Fill({
-                  color: "#ff8cc0"
+                  color: "white"
                 }),
                 stroke: new ol.style.Stroke({
                   width: 1,
-                  color: "white"
+                  color: "black"
                 })
               })
-        });
-        if(parseInt(feature.get("N05_005b")) > years[years.length-1] || parseInt(feature.get("N05_005e")) < years[years.length-1] || resolution > 20) {
-          sty.getImage().setOpacity(0);
+        })];
+        if(parseInt(feature.get("N05_005b"), 10) > years[years.length-1] || parseInt(feature.get("N05_005e"), 10) < years[years.length-1] || resolution > 20) {
+          sty[0].getImage().setOpacity(0);
+          return sty[0];
+        } else if(resolution < 4.78) {
+          sty.push(new ol.style.Style({
+            text: new ol.style.Text({
+              zIndex: 11,
+              offsetX: 8,
+              font: "10px sans-serif",
+              textAlign: "left",
+              textBaseline: "middle",
+              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? feature.get("N05_011") : undefined,
+              fill: new ol.style.Fill({color: "black"}),
+              stroke: new ol.style.Stroke({color: "white", width: 3})
+            })
+          }));
         }
         return sty;
       }
@@ -554,26 +747,26 @@
                   image: new ol.style.Circle({
                     radius: 5,
                     fill: new ol.style.Fill({
-                      color: "#ff0073"
+                      color: "white"
                     }),
                     stroke: new ol.style.Stroke({
-                      width: 2.5,
-                      color: "white"
+                      width: 2,
+                      color: "black"
                     })
                   })
             })
           ];
-          if(parseInt(feature.get("N05_005b")) > years[years.length-1] || parseInt(feature.get("N05_005e")) < years[years.length-1]) {
+          if(parseInt(feature.get("N05_005b"), 10) > years[years.length-1] || parseInt(feature.get("N05_005e"), 10) < years[years.length-1]) {
             sty[0].getImage().setOpacity(0);
           }
           sty.push(new ol.style.Style({
             text: new ol.style.Text({
               zIndex: 11,
               offsetX: 8,
-              font: "10px sans-serif",
+              font: "12px sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b")) <= years[years.length-1] && parseInt(feature.get("N05_005e")) >= years[years.length-1] ? feature.get("N05_011") : undefined,
+              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length-1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length-1] ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({color: "black"}),
               stroke: new ol.style.Stroke({color: "white", width: 3})
             })
@@ -592,9 +785,9 @@
       }
 
       function baiBain(resolution){
-        return resolution < 100 ? 100 / resolution : 1;
+        return resolution < 80 ? 80 / resolution : 1;
       }
-      
+
     })();
 
   </script>
