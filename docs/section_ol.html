@@ -585,8 +585,10 @@
       });
 
       //スライダーボタンの設定
-
+      /*
       const buttons = document.querySelectorAll(".slider-guide button");
+      */
+      const buttons = document.getElementsByClassName("slider-button");
       for (const x of buttons){
         x.addEventListener("click", function(evt){
           const neu = years[years.length-1] + parseInt(evt.target.dataset.year, 10);
@@ -630,12 +632,16 @@
 
         for (const x of basemaps.getLayers().getArray()){
           const botan = document.createElement("li");
+          botan.classList.add("baselayer-switcher");
           botan.innerHTML = x.get("title");
           if(x.getVisible()) botan.classList.add("active");
 
           botan.addEventListener("click", function(evt){
             basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
+            /*
             for (const ul of document.querySelectorAll("ul.base-menu li")) {
+            */
+            for (const ul of document.getElementsByClassName("baselayer-switcher")) {
               ul.classList.remove("active");
             }
             x.setVisible(true);
@@ -651,6 +657,7 @@
 
         for (const x of overlays.getLayers().getArray()){
           const botan = document.createElement("li");
+          botan.classList.add("overlay-switcher");
           botan.innerHTML = x.get("title");
           if(x.getVisible()) botan.classList.add("active");
 
