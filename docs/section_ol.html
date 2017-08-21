@@ -885,6 +885,24 @@
       console.log("head of sliderButtons");
 
       const sliderButtons = document.querySelectorAll(".slider-button");
+
+      for (let i = 0; i < sliderButtons.length; i++) {
+        sliderButtons[i].addEventListener("click", function(evt) {
+          const neu = years[years.length - 1] + parseInt(evt.target.dataset.year, 10);
+          if (neu <= years.extent.min) {
+            years.push(years.extent.min);
+          } else if (neu >= years.extent.max) {
+            years.push(years.extent.max);
+          } else {
+            years.push(neu);
+          }
+          updateYear(years[years.length - 1]);
+
+          updatePermalink();
+
+        });
+      }
+      /*
       for (const x of sliderButtons) {
         x.addEventListener("click", function(evt) {
           const neu = years[years.length - 1] + parseInt(evt.target.dataset.year, 10);
@@ -900,7 +918,7 @@
           updatePermalink();
 
         });
-      }
+      }*/
 
       console.log("tail of sliderButtons");
 
@@ -940,6 +958,30 @@
         const baseContainer = document.createElement("ul");
         baseContainer.setAttribute("class", "layer-menu base-menu");
 
+        for (let i = 0; i < basemaps.getLayers().getArray().length; i++) {
+          const botan = document.createElement("li");
+          botan.innerHTML = basemaps.getLayers().getArray()[i].get("title");
+          if (basemaps.getLayers().getArray()[i].getVisible()) botan.classList.add("active");
+
+          botan.addEventListener("click", function(evt) {
+            basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
+            for (let j = 0; j < document.querySelectorAll("ul.base-menu li")){
+              document.querySelectorAll("ul.base-menu li")[j].classList.remove("active");
+            }
+            /*
+            for (const ul of document.querySelectorAll("ul.base-menu li")) {
+              ul.classList.remove("active");
+            }
+            */
+            basemaps.getLayers().getArray()[i].setVisible(true);
+            evt.target.classList.add("active");
+            updatePermalink();
+          });
+          baseContainer.appendChild(botan);
+          document.getElementById("basemaps").appendChild(baseContainer);
+        }
+
+/*
         for (const x of basemaps.getLayers().getArray()) {
           const botan = document.createElement("li");
           botan.innerHTML = x.get("title");
@@ -957,12 +999,31 @@
           baseContainer.appendChild(botan);
           document.getElementById("basemaps").appendChild(baseContainer);
         }
-
+*/
         console.log("befor overlayContainer");
 
         const overlayContainer = document.createElement("ul");
         overlayContainer.setAttribute("class", "layer-menu overlay-menu");
 
+        for (let i = 0; i < overlays.getLayers().getArray().length; i++) {
+          const botan = document.createElement("li");
+          botan.innerHTML = overlays.getLayers().getArray()[i].get("title");
+          if (overlays.getLayers().getArray()[i].getVisible()) botan.classList.add("active");
+
+          botan.addEventListener("click", function() {
+            overlays.getLayers().getArray()[i].setVisible(!overlays.getLayers().getArray()[i].getVisible());
+            if (overlays.getLayers().getArray()[i].getVisible()) {
+              botan.classList.add("active");
+            } else {
+              botan.classList.remove("active");
+            }
+            updatePermalink();
+          });
+          overlayContainer.appendChild(botan);
+          document.getElementById("overlays").appendChild(overlayContainer);
+        }
+
+/*
         for (const x of overlays.getLayers().getArray()) {
           const botan = document.createElement("li");
           botan.innerHTML = x.get("title");
@@ -980,6 +1041,7 @@
           overlayContainer.appendChild(botan);
           document.getElementById("overlays").appendChild(overlayContainer);
         }
+        */
 
         console.log("tail of createLayerMenu");
 
