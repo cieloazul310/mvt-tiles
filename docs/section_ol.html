@@ -965,7 +965,7 @@
 
           botan.addEventListener("click", function(evt) {
             basemaps.getLayers().forEach(lyr => lyr.setVisible(false))
-            for (let j = 0; j < document.querySelectorAll("ul.base-menu li")){
+            for (let j = 0; j < document.querySelectorAll("ul.base-menu li"); j++){
               document.querySelectorAll("ul.base-menu li")[j].classList.remove("active");
             }
             /*
