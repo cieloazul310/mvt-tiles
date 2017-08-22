@@ -24,6 +24,8 @@
   <link rel="stylesheet" href="//openlayers.org/en/v4.3.1/css/ol.css">
   <style>
 
+    /* font-family */
+
     @font-face{
       font-family: "Original Yu Gothic";
       src: local("Yu Gothic");
@@ -52,6 +54,8 @@
       font-weight: 200;
     }
 
+    /* html and body */
+
     html,
     body {
       width: 100%;
@@ -73,6 +77,8 @@
       }
     }
 
+    /* whole map */
+
     .map-container {
       position: relative;
       width: 100%;
@@ -80,6 +86,8 @@
       margin: 0;
       padding: 0;
     }
+
+    /* map app */
 
     .map {
       width: 100%;
@@ -89,21 +97,44 @@
       padding: 0;
     }
 
-    .map-container .info {
+    /* custom ol style */
+
+    .ol-control button {
+      background-color: rgba(0, 121, 209, .5);
+    }
+
+    .ol-control button:focus, .ol-control button:hover {
+        background-color: rgba(68, 176, 255, .7);
+    }
+
+    .ol-rotate {
+      top: 7em;
+      left: .5em;
+      right: auto;
+    }
+
+    .ol-attribution li a {
+      color: inherit;
+      text-decoration: inherit;
+    }
+
+    /* map information */
+
+    .info {
       font-size: 14px;
       position: absolute;
-      right: 0.5em;
-      top: 0.5em;
+      right: .5em;
+      top: .5em;
       background-color: white;
       border-radius: 2px;
       padding: .4em;
       max-width: 70%;
       min-width: 120px;
       text-align: center;
-      -moz-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-      -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-      -o-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-      -ms-box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+      -moz-box-shadow: 2px 2px 4px rgba(0, 0, 0, .4);
+      -webkit-box-shadow: 2px 2px 4px rgba(0, 0, 0, .4);
+      -o-box-shadow: 2px 2px 4px rgba(0, 0, 0, .4);
+      -ms-box-shadow: 2px 2px 4px rgba(0, 0, 0, .4);
     }
 
     .info ul {
@@ -115,42 +146,18 @@
       margin: .2em;
       display: inline-block;
     }
-/*
+
+    /* menu button */
+
     .toggle-menu {
-      font-size: 12px;
-      font-family: monospace;
-      font-weight: bold;
-      background-color: #007dff;
-      color: white;
-      text-align: center;
-    }
-*/
-    .ol-control button {
-      background-color: rgba(0, 121, 209, 0.5);
-    }
-
-    .ol-control button:focus, .ol-control button:hover {
-        background-color: rgba(68, 176, 255, 0.7);
-    }
-
-    .map .ol-rotate {
-      top: 7em;
-      left: 0.5em;
-      right: auto;
-    }
-
-    .map .ol-attribution li a {
-      color: inherit;
-      text-decoration: inherit;
-    }
-
-    .map-container .toggle-menu {
       top: 4.5em;
-      left: 0.5em;/*
+      left: .5em;/*
       font-size: 1.2em;*/
     }
 
-    .map-container .menu {
+    /* menu window */
+
+    .menu {
       position: absolute;
       top: 0;
       left: 0;
@@ -159,35 +166,22 @@
       margin: 0;
       padding: 0;
       overflow: hidden;
-      background-color: rgba(0, 121, 209, 0.8);
+      background-color: rgba(0, 121, 209, .8);
       color: #eee;
     }
 
-    .map-container .menu h1,
-    .map-container .menu h2,
-    .map-container .menu h3,
-    .map-container .menu h4 {
+    .menu h1,
+    .menu h2,
+    .menu h3,
+    .menu h4 {
       color: white;
     }
-
 
     #menu {
       display: none;
     }
 
-    .menu-content{
-      margin-bottom: 4em;
-    }
-
-    .menu .menu-wrapper {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: scroll;
-      background-color: rgba(255,255,255,0);
-    }
-
-    .menu-wrapper .close-button {
+    .close-button {
       font-size: 400%;
       position: absolute;
       right: 15px;
@@ -197,19 +191,39 @@
       cursor: pointer;
       font-family: Helvetica, sans-serif;
     }
+
+    .menu-wrapper {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: scroll;
+      background-color: rgba(255,255,255,0);
+    }
 /*
-    .menu-wrapper .close-button::after{
-      content: "X";
+    .menu-wrapper-outer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
 */
     .menu-wrapper-inner {
       max-width: 600px;
       margin: 40px auto;
-      padding: 0.5em;
+      padding: .5em;
       text-align: center;
     }
 
-    .menu-wrapper-inner .menu-container {
+    /* each content */
+
+    .menu-content {
+      margin-bottom: 4em;
+    }
+
+    .menu-container {
       margin-bottom: 2em;
     }
 
@@ -220,46 +234,70 @@
     .map-controler li {
       border: none;
       cursor: pointer;
-      padding: 0.2em;
+      padding: .2em;
       color: #8ccce6;
       list-style: none;
       font-size: 32px;
     }
 
-    .map-controler  li:hover {
+    .map-controler li:hover {
       font-weight: bold;
       color: #cce5ef;
     }
 
-    .map-controler  li.active {
+    .map-controler li.active {
       color: white;
       font-weight: bold;
     }
 
-    .menu-wrapper-inner .description p,
-    .menu-wrapper-inner .description ul,
-    .menu-wrapper-inner .description blockquote {
+    .description p,
+    .description ul,
+    .description blockquote {
       text-align: left;
       margin: auto 2em;
       padding: inherit;
     }
 
-    .menu-wrapper-inner .description li {
+    .description li {
       text-align: left;
     }
 
-    .menu-wrapper .description h4 a {
+    .description h4 a {
       color: inherit;
       text-decoration: inherit;
+      position: relative;
+      display: inline-block;
     }
+
+    .description h4 a:before{
+      position: absolute;
+      top: 1.4em;
+      left: 0;
+      content: "";
+      display: inline-block;
+      width: 0;
+      height: 2px;
+      background: white;
+      transition: .2s;
+    }
+
+    .description h4 a:hover:before{
+      width: 100%;
+    }
+
 
     button.menu-closer {
       color: inherit;
       font: inherit;
       background: transparent;
       border: white 1px solid;
-      border-radius: 2px;
-      padding: 0.4em;
+      border-radius: 4px;
+      padding: .6em;
+    }
+
+    button.menu-closer:hover {
+      color: white;
+      cursor: pointer;
     }
 
     blockquote.map-attribution {
@@ -279,6 +317,9 @@
       border-radius: 2px;
     }
     */
+
+    /* slider container */
+
     .slider-container {
       position: absolute;
       width: 100%;
@@ -287,7 +328,9 @@
       text-align: center;
     }
 
-    .slider-container .slider-wrapper {
+    /* slider content*/
+
+    .slider-wrapper {
       width: 45%;
       min-width: 300px;
       margin: 0 auto;
@@ -307,16 +350,16 @@
       font-family: Arial, monospace, sans-serif;
     }
 
-    .slider-container .slider-guide {
+    .slider-guide {
       text-align: center;
       margin: auto;
     }
 
-    .slider-container .slider-guide button {
+    .slider-guide button {
       font-size: 20px;
       border: none;
       border-radius: 4px;
-      background-color: rgba(0, 121, 209, 0.5);
+      background-color: rgba(0, 121, 209, .5);
       color: white;
       margin: .2em;
       pointer-events: auto;
@@ -337,16 +380,16 @@
       width: 100%;
       height: 10px;
       cursor: pointer;
-      animate: 0.2s;
+      animate: .2s;
       box-shadow: 0px 0px 0px #000000;
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
       border-radius: 5px;
       border: 0px solid #000000;
     }
 
     input[type=range]::-webkit-slider-thumb {
       box-shadow: 0px 0px 0px #000000;
-      border: 2px solid rgba(0, 121, 209, 0.7);
+      border: 2px solid rgba(0, 121, 209, .7);
       height: 26px;
       width: 12px;
       border-radius: 5px;
@@ -357,23 +400,23 @@
     }
 
     input[type=range]:focus::-webkit-slider-runnable-track {
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
     }
 
     input[type=range]::-moz-range-track {
       width: 100%;
       height: 10px;
       cursor: pointer;
-      animate: 0.2s;
+      animate: .2s;
       box-shadow: 0px 0px 0px #000000;
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
       border-radius: 5px;
       border: 0px solid #000000;
     }
 
     input[type=range]::-moz-range-thumb {
       box-shadow: 0px 0px 0px #000000;
-      border: 2px solid rgba(0, 121, 209, 0.7);
+      border: 2px solid rgba(0, 121, 209, .7);
       height: 26px;
       width: 12px;
       border-radius: 5px;
@@ -385,21 +428,21 @@
       width: 100%;
       height: 10px;
       cursor: pointer;
-      animate: 0.2s;
+      animate: .2s;
       background: transparent;
       border-color: transparent;
       color: transparent;
     }
 
     input[type=range]::-ms-fill-lower {
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
       border: 0px solid #000000;
       border-radius: 10px;
       box-shadow: 0px 0px 0px #000000;
     }
 
     input[type=range]::-ms-fill-upper {
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
       border: 0px solid #000000;
       border-radius: 10px;
       box-shadow: 0px 0px 0px #000000;
@@ -408,7 +451,7 @@
     input[type=range]::-ms-thumb {
       margin-top: 1px;
       box-shadow: 0px 0px 0px #000000;
-      border: 2px solid rgba(0, 121, 209, 0.7);
+      border: 2px solid rgba(0, 121, 209, .7);
       height: 26px;
       width: 12px;
       border-radius: 5px;
@@ -417,11 +460,11 @@
     }
 
     input[type=range]:focus::-ms-fill-lower {
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
     }
 
     input[type=range]:focus::-ms-fill-upper {
-      background: rgba(0, 121, 209, 0.7);
+      background: rgba(0, 121, 209, .7);
     }
   </style>
   <script src="//openlayers.org/en/v4.3.1/build/ol.js"></script>
@@ -446,7 +489,9 @@
 
 <body>
   <div class="map-container">
+
     <div class="map" id="map"></div>
+
     <div class="info" id="info">
       <div id="info-title">
         <ul>
@@ -473,25 +518,28 @@
       <button id="toggle-menu" title="メニューを開く">&equiv;</button>
     </div>
 
-    <nav class="menu menu-closer" id="menu">
+    <nav class="menu" id="menu">
       <div class="menu-wrapper" id="menu-wrapper">
+        <div class="menu-wrapper-outer menu-closer">
+        </div>
         <div class="menu-wrapper-inner">
           <span class="close-button menu-closer" id="menu-close">&times;</span>
           <h1>日本鉄道時系列地図</h1>
           <div class="map-controler menu-content">
             <div class="layer-container">
+              <!--
               <div class="menu-container" id="basemaps">
                 <h3>Basemaps</h3>
               </div>
               <div class="menu-container" id="overlays">
                 <h3>Overlays</h3>
               </div>
+            -->
             </div>
             <div class="menu-container">
               <h3>Function</h3>
               <ul class="menus">
                 <li id="geolocation">現在地を表示</li>
-                <li class="menu-closer">メニューを閉じる</li>
                 <!--
                 <li id="map-export">画像として保存</li>
                 <div class="export-preview" id="export-preview">
@@ -499,6 +547,9 @@
               -->
               </ul>
             </div>
+          </div>
+          <div class="menu-content">
+            <button class="menu-closer">&times; メニューを閉じる</button>
           </div>
           <div class="description menu-content">
             <article>
@@ -522,17 +573,9 @@
                   昭和25年1月1日から平成28年12月31日までに運行していた全国の旅客鉄道・軌道の路線や駅の開業・廃止情報として、事業者（新幹線、JR在来線、公営鉄道、民営鉄道、第三セクター）、事業者名、路線名、運営会社等などの変遷情報を路線形状（線）、駅位置（点）ごとに時系列的に整備したものである（貨物駅と貨物路線は除く）。
                 </blockquote>
 
-                <h4><a href="http://www.gsi.go.jp/bousaichiri/slopemap.html" target="_blank">傾斜量図</a></h4>
-                <blockquote cite="http://www.gsi.go.jp/bousaichiri/slopemap.html">
-                  地表面の傾きの量を算出し、その大きさを白黒の濃淡で表現したものです。白いほど傾斜が緩やか、黒いほど急峻であることを意味します。台地、段丘、山地、火山地形、地すべり、断層などの地形判読などにご活用いただけます。
-                </blockquote>
-
-                <h4><a href="https://cyberjapandata.gsi.go.jp/legend/attension_relief.html" target="_blank">色別標高図</a></h4>
-                <blockquote cite="https://cyberjapandata.gsi.go.jp/legend/attension_relief.html">
-                  色別標高図は、標高の変化を陰影（太陽光線が地表に入射する際に，地表の凹凸の程度や方向によって明るく見えたり暗く見えたりする現象）と段彩（標高の段階的な色分け表現）の効果を用いて視覚的に表現したものです。
-                </blockquote>
-                <blockquote class="map-attribution">
-                  「海域部は海上保安庁海洋情報部の資料を使用して作成」
+                <h4><a href="https://www.openstreetmap.org/" target="_blank">OpenStreetMap</a></h4>
+                <blockquote cite="https://www.openstreetmap.org/about">
+                  OpenStreetMapは、道路、通路、カフェ、鉄道駅など、世界中にあるすべてのものに関するデータを提供・メンテナンスしているマッパーのコミュニティによって構築されました。
                 </blockquote>
 
                 <h4><a href="https://maps.gsi.go.jp/development/ichiran.html#pale" target="_blank">地理院地図（淡色地図）</a></h4>
@@ -548,6 +591,19 @@
                 <blockquote class="map-attribution">「データソース：Landsat8画像（GSI,TSIC,GEO Grid/AIST）, Landsat8画像（courtesy of the U.S. Geological Survey）, 海底地形（GEBCO）」<br>
                 Images on 世界衛星モザイク画像 obtained from site https://lpdaac.usgs.gov/data_access maintained by the NASA Land Processes Distributed Active Archive Center (LP DAAC), USGS/Earth Resources Observation and Science (EROS) Center, Sioux Falls, South Dakota, (Year). Source of image data product.</blockquote>
 
+                <h4><a href="https://cyberjapandata.gsi.go.jp/legend/attension_relief.html" target="_blank">色別標高図</a></h4>
+                <blockquote cite="https://cyberjapandata.gsi.go.jp/legend/attension_relief.html">
+                  色別標高図は、標高の変化を陰影（太陽光線が地表に入射する際に，地表の凹凸の程度や方向によって明るく見えたり暗く見えたりする現象）と段彩（標高の段階的な色分け表現）の効果を用いて視覚的に表現したものです。
+                </blockquote>
+                <blockquote class="map-attribution">
+                  「海域部は海上保安庁海洋情報部の資料を使用して作成」
+                </blockquote>
+
+                <h4><a href="http://www.gsi.go.jp/bousaichiri/slopemap.html" target="_blank">傾斜量図</a></h4>
+                <blockquote cite="http://www.gsi.go.jp/bousaichiri/slopemap.html">
+                  地表面の傾きの量を算出し、その大きさを白黒の濃淡で表現したものです。白いほど傾斜が緩やか、黒いほど急峻であることを意味します。台地、段丘、山地、火山地形、地すべり、断層などの地形判読などにご活用いただけます。
+                </blockquote>
+
                 <h4><a href="https://maps.gsi.go.jp/development/ichiran.html#blank" target="_blank">白地図</a></h4>
                 <p>行政区界と地名のみが書かれている地図</p>
 
@@ -555,7 +611,7 @@
             </article>
           </div>
           <div class="menu-content">
-            <button class="menu-closer">メニューを閉じる</button>
+            <button class="menu-closer">&times; メニューを閉じる</button>
           </div>
           <div class="copyrights menu-content">
             <p>© 2017 cieloazul310. All Rights Reserved</p>
@@ -603,6 +659,8 @@
         year: years[0]
       };
 
+      // permalinkの解析
+
       if (window.location.hash !== '') {
 
         const hash = window.location.hash.replace('#', '');
@@ -623,8 +681,6 @@
         if (parts.length > 3) {
           defaults.layers.overlays = parts[3];
         }
-        console.log(parts);
-        console.log(defaults);
       }
 
       document.getElementById("year").innerHTML = defaults.year;
@@ -672,6 +728,13 @@
         ksj: '<a href="http://nlftp.mlit.go.jp/ksj/" target="_blank">国土数値情報</a>',
       };
 
+      const osm = new ol.layer.Tile({
+        source: new ol.source.OSM(),
+        title: "OpenStreetMap",
+        permalink: "osm",
+        type: "layer"
+      });
+
       const ort = new ol.layer.Tile({
         source: new ol.source.XYZ({
           url: "//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg",
@@ -681,8 +744,8 @@
         }),
         title: "写真",
         permalink: "ort",
-        visible: false,
-        crossOrigin: 'Anonymous'
+        crossOrigin: 'Anonymous',
+        type: "layer"
       });
 
       const relief = new ol.layer.Tile({
@@ -694,8 +757,8 @@
         }),
         title: "色別標高図",
         permalink: "relief",
-        visible: false,
-        crossOrigin: 'Anonymous'
+        crossOrigin: 'Anonymous',
+        type: "layer"
       });
 
       const slope = new ol.layer.Tile({
@@ -707,8 +770,8 @@
         }),
         title: "傾斜量図",
         permalink: "slope",
-        visible: true,
-        crossOrigin: 'Anonymous'
+        crossOrigin: 'Anonymous',
+        type: "layer"
       });
 
       const cjpale = new ol.layer.Tile({
@@ -720,8 +783,8 @@
         }),
         title: "地理院地図",
         permalink: "cjpale",
-        visible: false,
-        crossOrigin: 'Anonymous'
+        crossOrigin: 'Anonymous',
+        type: "layer"
       });
 
       const cjblank = new ol.layer.Tile({
@@ -733,19 +796,22 @@
         }),
         title: "白地図",
         permalink: "cjblank",
-        visible: false,
-        crossOrigin: 'Anonymous'
+        crossOrigin: 'Anonymous',
+        type: "layer"
       });
 
       const allblacks = new ol.layer.Group({
         title: "黒",
         permalink: "allblacks",
-        visible: false,
-        opacity: 0
+        opacity: 0,
+        type: "layer"
       });
 
       const basemaps = new ol.layer.Group({
-        layers: [ort, slope, cjpale, relief, cjblank, allblacks]
+        layers: [osm, cjpale, ort, relief, slope, cjblank, allblacks],
+        title: "Basemaps",
+        type: "bases",
+        permalink: "base"
       });
 
       // mvtレイヤの設定
@@ -762,9 +828,10 @@
         }),
         title: "路線",
         permalink: "section",
-        visible: true,
-        opacity: 0.6,
-        style: sectionStyleFunction
+        opacity: .6,
+        preload: .5,
+        style: sectionStyleFunction,
+        type: "layer"
       });
 
       const station = new ol.layer.VectorTile({
@@ -779,9 +846,9 @@
         }),
         title: "駅",
         permalink: "station",
-        visible: true,
         maxResolution: 1000,
-        style: stationStyleFunction
+        style: stationStyleFunction,
+        type: "layer"
       });
 /*
       const debugLayer = new ol.layer.Tile({
@@ -790,10 +857,12 @@
             tileGrid: station.getSource().getTileGrid()
           }),
           title: "tileGrid",
-          permalink: "tilegrid"
+          permalink: "tilegrid",
+          type: "layer"
       });
       */
-/*
+      /*
+
       const jleague = new ol.layer.Vector({
         source: new ol.source.Vector({
           format: new ol.format.GeoJSON(),
@@ -817,9 +886,19 @@
       });
 */
       const overlays = new ol.layer.Group({
-        layers: [section, station/*, debugLayer, jleague*/]
+        layers: [section, station],
+        title: "Overlays",
+        type: "overlays",
+        permalink: "overlays"
       });
-
+/*
+      const yokyo = new ol.layer.Group({
+        layers: [debugLayer],
+        title: "Layer for Debug",
+        type: "overlays",
+        permalink: "yokyo"
+      });
+*/
       // viewオブジェクト
 
       const view = new ol.View({
@@ -840,13 +919,13 @@
           collapsible: false
         }),new ol.control.ScaleLine()]),
         view: view,
-        layers: [basemaps, overlays]
+        layers: [basemaps, overlays/*, yokyo*/]
       });
 
       // geolocationの設定
 
       const geolocation = new ol.Geolocation({
-        projection: view.getProjection()
+        projection: map.getView().getProjection()
       });
 
       const positionFeature = new ol.Feature();
@@ -869,13 +948,13 @@
                   geolocation.setTracking(true);
                   evt.target.classList.add("active");
                 } else {
-                  view.setCenter(geolocation.getPosition());
+                  map.getView().setCenter(geolocation.getPosition());
                 }
               });
 
       geolocation.once("change:position", function() {
-        view.setCenter(geolocation.getPosition());
-        view.setZoom(12);
+        map.getView().setCenter(geolocation.getPosition());
+        map.getView().setZoom(12);
         positionFeature.setGeometry(geolocation.getPosition() ?
           new ol.geom.Point(geolocation.getPosition()) : null);
         new ol.layer.Vector({
@@ -887,7 +966,6 @@
       });
 
       geolocation.on('change:position', function() {
-        console.log("change position");
         positionFeature.setGeometry(geolocation.getPosition() ?
           new ol.geom.Point(geolocation.getPosition()) : null);
       });
@@ -969,14 +1047,17 @@
           return;
         }
         const currentView = {
-          center: ol.proj.toLonLat(view.getCenter()),
-          zoom: view.getZoom(),
-          rotation: view.getRotation()
+          center: ol.proj.toLonLat(map.getView().getCenter()),
+          zoom: map.getView().getZoom(),
+          rotation: map.getView().getRotation()
         };
         const currentYear = {
           current: years[years.length - 1],
           years: years
         };
+
+        // should do when the layers change
+
         let currentBase;
         basemaps.getLayers().forEach(function(lyr, i) {
           if (!lyr.getVisible()) return;
@@ -987,6 +1068,7 @@
           if (!lyr.getVisible()) return;
           currentOverlay.push(lyr.get("permalink"));
         });
+        
         const state = {
           view: currentView,
           year: currentYear,
@@ -1009,9 +1091,9 @@
         if (event.state === null) {
           return;
         }
-        view.setZoom(event.state.view.zoom);
-        view.setCenter(ol.proj.fromLonLat(event.state.view.center));
-        view.setRotation(event.state.view.rotation);
+        map.getView().setZoom(event.state.view.zoom);
+        map.getView().setCenter(ol.proj.fromLonLat(event.state.view.center));
+        map.getView().setRotation(event.state.view.rotation);
 
         years = event.state.year.years;
         updateYear(event.state.year.current);
@@ -1077,13 +1159,93 @@
       ;
       (() => {
 
+        const layerContainer = document.querySelector(".layer-container");
+
+        map.getLayers().forEach((lyg, i) => {
+          if (lyg.get("type") === "bases" || lyg.get("type") === "overlays") {
+
+            const groupContainer = document.createElement("div");
+            groupContainer.classList.add("menu-container");
+            groupContainer.id = lyg.get("permalink").toLowerCase();
+
+            const groupTitle = document.createElement("h3");
+            groupTitle.innerHTML = lyg.get("title");
+
+            groupContainer.appendChild(groupTitle);
+
+            const groupUL = document.createElement("ul");
+
+            lyg.getLayers().forEach((lyr, j) => {
+              if (lyr.get("type") === "layer") {
+
+                if (lyg.get("type") === "bases"){
+
+                  lyr.setVisible(lyr.get("permalink") === defaults.layers[lyg.get("permalink")]);
+
+                } else if (lyg.get("type") === "overlays") {
+
+                  lyr.setVisible(defaults.layers[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
+
+                }
+
+                const botan = document.createElement("li");
+                botan.classList.add("layer-menu");
+                botan.classList.add("layer-" + lyg.get("permalink"));
+                if (lyr.getVisible()){
+                  botan.classList.add("active");
+                }
+                botan.innerHTML = lyr.get("title");
+
+                groupUL.appendChild(botan);
+
+                const botans = document.querySelectorAll(".layer-" + lyg.get("permalink"));
+
+                botan.addEventListener("click", function(evt) {
+                  if (lyg.get("type") === "bases") {
+
+                    for (let k = 0; k < botans.length; k++) {
+                      botans[k].classList.remove("active");
+                    }
+                    evt.target.classList.add("active");
+
+                    lyg.getLayers().forEach(d => d.setVisible(false));
+                    lyr.setVisible(true);
+
+                  } else if (lyg.get("type") === "overlays") {
+
+                    if (lyr.getVisible()) evt.target.classList.remove("active");
+                    else evt.target.classList.add("active");
+
+                    lyr.setVisible(!lyr.getVisible());
+
+                  }
+                updatePermalink();
+
+                });
+
+              }
+            });
+
+            groupContainer.appendChild(groupUL);
+            layerContainer.appendChild(groupContainer);
+
+          }
+
+        });
+
+      })();
+
+/*
+      ;
+      (() => {
+
         basemaps.getLayers().forEach(function(lyr, i) {
           lyr.setVisible(lyr.get("permalink") === defaults.layers.base);
         });
-        overlays.getLayers().forEach(function(lyr, i) {
+        overlays.getLayers().forEach(function(lyr, i) {*/
           /*
           lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
-          */
+          *//*
           lyr.setVisible(defaults.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
         });
 
@@ -1133,7 +1295,7 @@
         }
 
       })();
-
+*/
       // メニューの設定
 
       ;(() => {
@@ -1264,18 +1426,18 @@
           return sty[0];
         } else if (resolution < 4.78) {
           sty.push(new ol.style.Style({
+            zIndex: 10,
             text: new ol.style.Text({
-              zIndex: 11,
               offsetX: 8,
               font: "11px -apple-system,sans-serif",
               textAlign: "left",
               textBaseline: "middle",
               text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({
-                color: "black"
+                color: "white"
               }),
               stroke: new ol.style.Stroke({
-                color: "white",
+                color: "black",
                 width: 4
               })
             })
@@ -1305,18 +1467,18 @@
             sty[0].getImage().setOpacity(0);
           }
           sty.push(new ol.style.Style({
+            zIndex: 15,
             text: new ol.style.Text({
-              zIndex: 11,
               offsetX: 8,
-              font: "14px -apple-system,sans-serif",
+              font: "12px -apple-system,sans-serif",
               textAlign: "left",
               textBaseline: "middle",
               text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({
-                color: "black"
+                color: "white"
               }),
               stroke: new ol.style.Stroke({
-                color: "white",
+                color: "black",
                 width: 4
               })
             })
