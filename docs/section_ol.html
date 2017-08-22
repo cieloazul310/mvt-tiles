@@ -625,66 +625,28 @@
     (() => {
       "use strict";
 
-      // 地図のconfigオブジェクト
-      /*
-            const config = {
-              zoom: {max: 16, min: 3}
-            };
-        */
-      // スライダーの設定
+      // デフォルトのmapStateを定義
 
-      let years = [new Date().getFullYear()];
-      const slider = document.getElementById("slider");
-
-      years.extent = {
-        min: 1950,
-        max: years[0]
-      };
-
-      slider.setAttribute("min", years.extent.min);
-      slider.setAttribute("max", years.extent.max);
-
-      // permalinkの設定
-
-      const defaults = {
+      const mapState = {
         view: {
           zoom: 6,
           center: [140.6, 36.5],
           rotation: 0
         },
         layers: {
-          base: "slope",
-          overlays: ["section", "station"]
+          base: ["slope"],
+          overlays: ["section", "station"],
+          yokyo: []
         },
-        year: years[0]
+        year: {
+          current: new Date().getFullYear()
+        },
+        shouldUpdate: true,
+        urlstrings: {layers: {base: "base=slope", overlays: "overlays=section/station", yokyo: "yokyo="}}
       };
 
-      // permalinkの解析
-
-      if (window.location.hash !== '') {
-
-        const hash = window.location.hash.replace('#', '');
-        const parts = hash.split('&').map(str => str.split("/"));
-
-        if (parts.length > 0) {
-          defaults.view.zoom = parseFloat(parts[0][0]);
-          defaults.view.center = [parseFloat(parts[0][1]), parseFloat(parts[0][2])];
-          defaults.rotation = parseFloat(parts[0][3]);
-        }
-        if (parts.length > 1) {
-          defaults.year = parseInt(parts[1][0]);
-          years.push(defaults.year);
-        }
-        if (parts.length > 2) {
-          defaults.layers.base = parts[2][0];
-        }
-        if (parts.length > 3) {
-          defaults.layers.overlays = parts[3];
-        }
-      }
-
-      document.getElementById("year").innerHTML = defaults.year;
-      slider.value = defaults.year;
+      mapState.year.years = [mapState.year.current];
+      mapState.urlstrings.year = mapState.year.current;
 
       // mvtレイヤの属性別のスタイルを設定
 
@@ -810,7 +772,7 @@
       const basemaps = new ol.layer.Group({
         layers: [osm, cjpale, ort, relief, slope, cjblank, allblacks],
         title: "Basemaps",
-        type: "bases",
+        type: "basemaps",
         permalink: "base"
       });
 
@@ -850,7 +812,7 @@
         style: stationStyleFunction,
         type: "layer"
       });
-/*
+
       const debugLayer = new ol.layer.Tile({
           source: new ol.source.TileDebug({
             projection: 'EPSG:3857',
@@ -860,8 +822,6 @@
           permalink: "tilegrid",
           type: "layer"
       });
-      */
-      /*
 
       const jleague = new ol.layer.Vector({
         source: new ol.source.Vector({
@@ -873,6 +833,7 @@
         }),
         title: "Jリーグ",
         permalink: "jleague",
+        type: "layer",
         visible: false,
         maxResolution: 1000,
         style: new ol.style.Style({
@@ -884,30 +845,21 @@
           })
         })
       });
-*/
+
       const overlays = new ol.layer.Group({
         layers: [section, station],
         title: "Overlays",
         type: "overlays",
         permalink: "overlays"
       });
-/*
+
       const yokyo = new ol.layer.Group({
-        layers: [debugLayer],
-        title: "Layer for Debug",
+        layers: [debugLayer, jleague],
+        title: "余興",
         type: "overlays",
         permalink: "yokyo"
       });
-*/
-      // viewオブジェクト
 
-      const view = new ol.View({
-        center: ol.proj.fromLonLat(defaults.view.center),
-        zoom: defaults.view.zoom,
-        maxZoom: 16,
-        minZoom: 3,
-        rotation: defaults.view.rotation
-      });
 
       // mapオブジェクト
 
@@ -917,10 +869,70 @@
           attribution: false
         }).extend([new ol.control.Attribution({
           collapsible: false
-        }),new ol.control.ScaleLine()]),
-        view: view,
-        layers: [basemaps, overlays/*, yokyo*/]
+        }), new ol.control.ScaleLine()]),
+        view: new ol.View({
+          maxZoom: 16,
+          minZoom: 3
+        }),
+        layers: [basemaps, overlays, yokyo]
       });
+
+      // permalinkの解析
+
+      if (window.location.hash !== '') {
+
+        const hash = window.location.hash.replace('#', '');
+        const parts = hash.split('&');
+
+        console.log(parts);
+
+        if (parts.length > 0) {
+          mapState.urlstrings.view = parts[0];
+
+          const values = parts[0].split("/").map(d => parseFloat(d));
+          [mapState.view.zoom, mapState.view.center, mapState.view.rotation] = [values[0], [values[1], values[2]], values[3]];
+
+        }
+        if (parts.length > 1) {
+          mapState.urlstrings.year = parts[1];
+          mapState.year.current = parseInt(parts[1], 10);
+          mapState.year.years.push(mapState.year.current);
+        }
+
+        if (parts.length > 2) {
+
+          const lyg = map.getLayers().getArray();
+
+          for (let i = 2; i < parts.length; i++) {
+            const layerStrings = parts[i].split("=");
+            mapState.urlstrings.layers[layerStrings[0]] = parts[i];
+
+            const lygtype = lyg[lyg.map(d => d.get("permalink")).indexOf(layerStrings[0])].get("type");
+
+            mapState.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
+          }
+
+        }
+
+      }
+
+      map.getView().setCenter(ol.proj.fromLonLat(mapState.view.center));
+      map.getView().setZoom(mapState.view.zoom);
+      map.getView().setRotation(mapState.view.rotation);
+
+      // スライダーの設定
+
+      mapState.year.extent = {
+        min: 1950,
+        max: mapState.year.years[0]
+      };
+
+      const slider = document.getElementById("slider");
+      slider.setAttribute("min", mapState.year.extent.min);
+      slider.setAttribute("max", mapState.year.extent.max);
+
+      document.getElementById("year").innerHTML = mapState.year.current;
+      slider.value = mapState.year.current;
 
       // geolocationの設定
 
@@ -1035,56 +1047,62 @@
         }
       });
 
-      map.on("moveend", updatePermalink);
+      map.on("moveend", () => {
+        updateStatus({view: map.getView()});
+      });
 
       // permalinkのupdate
 
-      let shouldUpdate = true;
+      function updateStatus(obj){
+
+        for (const prop in obj) {
+          if (prop === "view") {
+            mapState.view.center = ol.proj.toLonLat(obj[prop].getCenter());
+            mapState.view.zoom = obj[prop].getZoom();
+            mapState.view.rotation = obj[prop].getRotation();
+
+            mapState.urlstrings.view = [mapState.view.zoom, mapState.view.center[0], mapState.view.center[1], mapState.view.rotation].map(d => d.toFixed(6)).join("/");
+
+          } else if (prop === "year") {
+            mapState.year = obj[prop];
+            mapState.urlstrings.year = obj[prop].current;
+
+          } else if (prop === "layers") {
+
+              const currentLayers = [];
+              obj[prop].getLayers().forEach((lyr, i) => {
+                if (!lyr.getVisible()) return;
+                currentLayers.push(lyr.get("permalink"));
+              });
+              mapState.layers[obj[prop].get("permalink")] = currentLayers;
+              mapState.urlstrings.layers[obj[prop].get("permalink")] = obj[prop].get("permalink") + "=" + currentLayers.join("/");
+
+          }
+        }
+        updatePermalink();
+      }
 
       function updatePermalink() {
-        if (!shouldUpdate) {
-          shouldUpdate = true;
+
+        console.log(mapState);
+
+        if (!mapState.shouldUpdate) {
+          mapState.shouldUpdate = true;
           return;
         }
-        const currentView = {
-          center: ol.proj.toLonLat(map.getView().getCenter()),
-          zoom: map.getView().getZoom(),
-          rotation: map.getView().getRotation()
-        };
-        const currentYear = {
-          current: years[years.length - 1],
-          years: years
-        };
+/*
+        Object.values(mapState.urlstrings.layers).join("&");
+*/
+        const arr = [mapState.urlstrings.view, mapState.urlstrings.year];
 
-        // should do when the layers change
+        for (let prop in mapState.urlstrings.layers){
+          arr.push(mapState.urlstrings.layers[prop]);
+        }
 
-        let currentBase;
-        basemaps.getLayers().forEach(function(lyr, i) {
-          if (!lyr.getVisible()) return;
-          currentBase = lyr.get("permalink");
-        });
-        const currentOverlay = [];
-        overlays.getLayers().forEach(function(lyr, i) {
-          if (!lyr.getVisible()) return;
-          currentOverlay.push(lyr.get("permalink"));
-        });
-        
-        const state = {
-          view: currentView,
-          year: currentYear,
-          layers: {
-            base: currentBase,
-            overlays: currentOverlay
-          }
-        };
+        const hash = "#" + arr.join("&");
 
-        const hash = "#" + [
-          [state.view.zoom, state.view.center[0], state.view.center[1], state.view.rotation].map(d => d.toFixed(6)).join("/"),
-          state.year.current,
-          state.layers.base,
-          state.layers.overlays.join("/")
-        ].join("&");
-        window.history.pushState(state, 'map', hash);
+        window.history.pushState(mapState, 'map', hash);
+
       }
 
       window.addEventListener('popstate', function(event) {
@@ -1095,7 +1113,7 @@
         map.getView().setCenter(ol.proj.fromLonLat(event.state.view.center));
         map.getView().setRotation(event.state.view.rotation);
 
-        years = event.state.year.years;
+        mapState.year.years = event.state.year.years;
         updateYear(event.state.year.current);
 
         basemaps.getLayers().forEach(function(lyr, i) {
@@ -1103,20 +1121,21 @@
         });
         overlays.getLayers().forEach(function(lyr, i) {
           /*
-          lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
+          lyr.setVisible(mapState.layers.overlays.includes(lyr.get("permalink")));
           */
           lyr.setVisible(event.state.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
         });
-        shouldUpdate = false;
+        mapState.shouldUpdate = false;
+
       });
 
       // スライダーのイベントの設定
 
-      slider.addEventListener("change", function() {
-        const neu = parseInt(slider.value, 10);
-        years.push(neu);
+      slider.addEventListener("change", function(evt) {
+        const neu = parseInt(evt.target.value, 10);
+        mapState.year.current = neu;
 
-        updateYear(years[years.length - 1]);
+        updateYear(mapState.year.current);
         updatePermalink();
       });
 
@@ -1129,16 +1148,17 @@
 
       for (let i = 0; i < sliderButtons.length; i++) {
         sliderButtons[i].addEventListener("click", function(evt) {
-          const neu = years[years.length - 1] + parseInt(evt.target.dataset.year, 10);
-          if (neu <= years.extent.min) {
-            years.push(years.extent.min);
-          } else if (neu >= years.extent.max) {
-            years.push(years.extent.max);
-          } else {
-            years.push(neu);
-          }
-          updateYear(years[years.length - 1]);
+          const neu = mapState.year.years[mapState.year.years.length - 1] + parseInt(evt.target.dataset.year, 10);
 
+          if (neu <= mapState.year.extent.min) {
+            mapState.year.current = mapState.year.extent.min;
+          } else if (neu >= mapState.year.extent.max) {
+            mapState.year.current = mapState.year.extent.max;
+          } else {
+            mapState.year.current = neu;
+          }
+
+          updateYear(mapState.year.current);
           updatePermalink();
 
         });
@@ -1147,8 +1167,11 @@
     })();
 
       function updateYear(num) {
+        mapState.year.years.push(num);
+        mapState.urlstrings.year = num;
         slider.value = num;
         document.getElementById("year").innerHTML = num;
+
         section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);
         station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
       }
@@ -1162,7 +1185,7 @@
         const layerContainer = document.querySelector(".layer-container");
 
         map.getLayers().forEach((lyg, i) => {
-          if (lyg.get("type") === "bases" || lyg.get("type") === "overlays") {
+          if (lyg.get("type") === "basemaps" || lyg.get("type") === "overlays") {
 
             const groupContainer = document.createElement("div");
             groupContainer.classList.add("menu-container");
@@ -1178,15 +1201,7 @@
             lyg.getLayers().forEach((lyr, j) => {
               if (lyr.get("type") === "layer") {
 
-                if (lyg.get("type") === "bases"){
-
-                  lyr.setVisible(lyr.get("permalink") === defaults.layers[lyg.get("permalink")]);
-
-                } else if (lyg.get("type") === "overlays") {
-
-                  lyr.setVisible(defaults.layers[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
-
-                }
+                lyr.setVisible(mapState.layers[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
 
                 const botan = document.createElement("li");
                 botan.classList.add("layer-menu");
@@ -1198,28 +1213,35 @@
 
                 groupUL.appendChild(botan);
 
-                const botans = document.querySelectorAll(".layer-" + lyg.get("permalink"));
-
                 botan.addEventListener("click", function(evt) {
-                  if (lyg.get("type") === "bases") {
+                  if (lyg.get("type") === "basemaps") {
+
+                    const botans = document.querySelectorAll(".layer-" + lyg.get("permalink"));
 
                     for (let k = 0; k < botans.length; k++) {
                       botans[k].classList.remove("active");
                     }
+
                     evt.target.classList.add("active");
 
-                    lyg.getLayers().forEach(d => d.setVisible(false));
+                    lyg.getLayers().forEach((d, i) => {
+                      d.setVisible(false);
+                    });
                     lyr.setVisible(true);
 
                   } else if (lyg.get("type") === "overlays") {
 
-                    if (lyr.getVisible()) evt.target.classList.remove("active");
-                    else evt.target.classList.add("active");
+                    if (lyr.getVisible()) {
+                      evt.target.classList.remove("active");
+                    } else {
+                      evt.target.classList.add("active");
+                    }
 
                     lyr.setVisible(!lyr.getVisible());
 
                   }
-                updatePermalink();
+
+                updateStatus({layers: lyg});
 
                 });
 
@@ -1240,13 +1262,13 @@
       (() => {
 
         basemaps.getLayers().forEach(function(lyr, i) {
-          lyr.setVisible(lyr.get("permalink") === defaults.layers.base);
+          lyr.setVisible(lyr.get("permalink") === mapState.layers.base);
         });
         overlays.getLayers().forEach(function(lyr, i) {*/
           /*
-          lyr.setVisible(defaults.layers.overlays.includes(lyr.get("permalink")));
+          lyr.setVisible(mapState.layers.overlays.includes(lyr.get("permalink")));
           *//*
-          lyr.setVisible(defaults.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
+          lyr.setVisible(mapState.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
         });
 
         const baseContainer = document.createElement("ul");
@@ -1363,14 +1385,14 @@
             zIndex: 0,
             stroke: new ol.style.Stroke({
               width: Math.min(12, createStyle(feature).width * baiBain(resolution)) + 2,
-              color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "black" : "rgba(255,255,255,0)"
+              color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? "black" : "rgba(255,255,255,0)"
             })
           }),
           new ol.style.Style({
             zIndex: createStyle(feature).zIndex,
             stroke: new ol.style.Stroke({
               width: Math.min(12, createStyle(feature).width * baiBain(resolution)),
-              color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+              color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? createStyle(feature).color : "rgba(255,255,255,0)"
             })
           })
         ];
@@ -1383,21 +1405,21 @@
               zIndex: 15,
               stroke: new ol.style.Stroke({
                 width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 10 : 12,
-                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "white" : "rgba(255,255,255,0)"
+                color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? "white" : "rgba(255,255,255,0)"
               })
             }),
             new ol.style.Style({
               zIndex: 20,
               stroke: new ol.style.Stroke({
                 width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) + 8 : 10,
-                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? "black" : "rgba(255,255,255,0)"
+                color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? "black" : "rgba(255,255,255,0)"
               })
             }),
             new ol.style.Style({
               zIndex: 25,
               stroke: new ol.style.Stroke({
                 width: resolution < 19.11 ? Math.min(12, createStyle(feature).width * baiBain(resolution)) : 4,
-                color: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? createStyle(feature).color : "rgba(255,255,255,0)"
+                color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? createStyle(feature).color : "rgba(255,255,255,0)"
               })
             })
           ];
@@ -1421,7 +1443,7 @@
             })
           })
         })];
-        if (parseInt(feature.get("N05_005b"), 10) > years[years.length - 1] || parseInt(feature.get("N05_005e"), 10) < years[years.length - 1] || resolution > 20) {
+        if (parseInt(feature.get("N05_005b"), 10) > mapState.year.current || parseInt(feature.get("N05_005e"), 10) < mapState.year.current || resolution > 20) {
           sty[0].getImage().setOpacity(0);
           return sty[0];
         } else if (resolution < 4.78) {
@@ -1432,7 +1454,7 @@
               font: "11px -apple-system,sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
+              text: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({
                 color: "white"
               }),
@@ -1463,7 +1485,7 @@
               })
             })
           ];
-          if (parseInt(feature.get("N05_005b"), 10) > years[years.length - 1] || parseInt(feature.get("N05_005e"), 10) < years[years.length - 1]) {
+          if (parseInt(feature.get("N05_005b"), 10) > mapState.year.current || parseInt(feature.get("N05_005e"), 10) < mapState.year.current) {
             sty[0].getImage().setOpacity(0);
           }
           sty.push(new ol.style.Style({
@@ -1473,7 +1495,7 @@
               font: "12px -apple-system,sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b"), 10) <= years[years.length - 1] && parseInt(feature.get("N05_005e"), 10) >= years[years.length - 1] ? feature.get("N05_011") : undefined,
+              text: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({
                 color: "white"
               }),
