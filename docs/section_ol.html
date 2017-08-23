@@ -679,7 +679,14 @@
         }
 
         setViewFromMap() {
-          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [this.map.getView().getZoom(), ol.proj.toLonLat(this.map.getView().getCenter()), this.map.getView().getRotation()];
+          const neu = {
+            zoom: this.map.getView().getZoom(),
+            center: ol.proj.toLonLat(this.map.getView().getCenter()),
+            rotation: this.map.getView().getRotation()
+          };
+          /*
+          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [this.map.getView().getZoom(), ol.proj.toLonLat(this.map.getView().getCenter()), this.map.getView().getRotation()];*/
+          this.config.view = neu;
           this.config.urlstrings.view = this.viewStrings(this.config.view);
           return this;
         }
@@ -687,7 +694,13 @@
         viewURLtoConfig(str) {
           this.config.urlstrings.view = str;
           const values = str.split("/").map(d => parseFloat(d));
-          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];
+          const neu = {
+            zoom: values[0],
+            center: values[1],
+            rotation: values[2]
+          };/*
+          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];*/
+          this.config.view = neu;
           return this;
         }
 
