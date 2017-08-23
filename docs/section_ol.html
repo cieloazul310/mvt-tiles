@@ -7,8 +7,8 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="author" content="cieloazul310">
   <meta name="keywords" content="OpenLayers,地図,鉄道,廃線">
-  <meta name="description" content="1950年から現在までに存在した日本全国の鉄道路線を表示した地図">
-  <meta property="og:description" content="1950年から現在までに存在した日本全国の鉄道路線を表示した地図">
+  <meta name="description" content="日本鉄道時系列地図は1950年から現在までに存在した日本全国の鉄道路線を表示した地図です。">
+  <meta property="og:description" content="日本鉄道時系列地図は1950年から現在までに存在した日本全国の鉄道路線を表示した地図">
   <meta property="og:type" content="website">
   <meta property="og:title" content="日本鉄道時系列地図 | 水戸地図">
   <!--
@@ -17,7 +17,7 @@
   <meta property="og:site_name" content="水戸地図">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="日本鉄道時系列地図 | 水戸地図">
-  <meta name="twitter:description" content="1950年から現在までに存在した日本全国の鉄道路線を表示した地図">
+  <meta name="twitter:description" content="日本鉄道時系列地図は1950年から現在までに存在した日本全国の鉄道路線を表示した地図">
   <!--
   <meta property="og:image" content="">
 -->
@@ -620,11 +620,11 @@
       </div>
     </nav>
   </div>
-  <script>
+  <script>/*
     ;
     (() => {
       "use strict";
-
+*/
       // デフォルトのmapStateを定義
 
       const mapState = {
@@ -635,19 +635,187 @@
         },
         layers: {
           base: ["slope"],
-          overlays: ["section", "station"],
+          overlays: ["section"/*, "station"*/],
           yokyo: []
         },
         year: {
-          current: new Date().getFullYear()
+          current: new Date().getFullYear(),
+          years: [],
+          extent: {min: 1950}
         },
         shouldUpdate: true,
-        urlstrings: {layers: {base: "base=slope", overlays: "overlays=section/station", yokyo: "yokyo="}}
+        selected: {
+          history: [],
+          clicked: false
+        }
       };
 
+      class State {
+        constructor(map, defaults) {
+          this.map = map;
+          [this.view, this.layers, this.year] = [defaults.view, defaults.layers, defaults.year];
+
+          this.shouldUpdate = true;
+          this.selected = {
+            history: [],
+            clicked: false
+          };
+          this.year.years.push(this.year.current);
+          this.year.extent.max = this.year.current;
+
+          this.urlstrings = {layers: {}};
+          this.tributeLayersStrings(defaults.layers);
+
+          this.urlstrings.view = this.viewStrings(this.view);
+          this.urlstrings.year = this.year.current;
+
+          this.shouldUpdate = true;
+          this.selected = {
+            history: [],
+            clicked: false
+          };
+          return this;
+        }
+
+        setView(view) {
+          const neu = {zoom: view.getZoom(), center: ol.proj.toLonLat(view.getCenter()), rotation: view.getRotation()};
+          this.view = neu;
+          this.urlstrings.view = this.viewStrings(neu);
+          return this;
+        }
+        getView() {
+          return this.view;
+        }
+        setViewToMap(view) {
+          this.map.getView().setCenter(ol.proj.fromLonLat(view.center));
+          this.map.getView().setZoom(view.zoom);
+          this.map.getView().setRotation(view.rotation);
+          return this;
+        }
+        viewStrings(viewState) {
+          return [viewState.zoom, viewState.center[0], viewState.center[1], viewState.rotation].map(d => d.toFixed(6)).join("/");
+        }
+        getViewStrings() {
+          return this.urlstrings.view;
+        }
+
+        setLayers(obj) {
+          this.layers = obj;
+          return this;
+        }
+        setLayersFromGroup(lyg) {
+          const currentLayers = [];
+          lyg.getLayers().forEach((lyr, i) => {
+            if (!lyr.getVisible()) return;
+            currentLayers.push(lyr.get("permalink"));
+          });
+          this.layers[lyg.get("permalink")] = currentLayers;
+          this.urlstrings.layers[lyg.get("permalink")] = this.layersStringsFromGroup(lyg);
+          return this;
+        }
+
+        layersStringsFromGroup(lyg) {
+          return lyg.get("permalink") + "=" + this.layers[lyg.get("permalink")].join("/");
+        }
+
+        getLayers(permalink) {
+          if (permalink) return this.layers[permalink];
+          return this.layers;
+        }
+
+        tributeLayersStrings(layers) {
+          // distributes each layer congig to url strings
+          for (let prop in layers) {
+            this.urlstrings.layers[prop] = prop + "=" + layers[prop].join("/");
+          }
+          return;
+        }
+
+        getLayersStrings() {
+          // return a joined url strings
+          const arr = [];
+          for (let prop in this.urlstrings.layers) {
+            arr.push(this.urlstrings.layers[prop]);
+          }
+          return arr.join("&");
+        }
+
+        getCurrentYear() {
+          return this.year.current;
+        }
+
+        setYear(year) {
+          this.year.current = parseInt(year, 10);
+          this.year.years.push(year);
+          this.urlstrings.year = year;
+          return this;
+        }
+
+        getYearsExtent() {
+          return this.year.extent;
+        }
+
+        setYearsExtent(arr) {
+          if (arr.length !== 2) throw error;
+          this.year.extent = {min: parseInt(Math.min(arr[0], arr[1]), 10), max: parseInt(Math.max(arr[0], arr[1]), 10)};
+          return this;
+        }
+
+        getVisibleInYear(feature) {
+          return (parseInt(feature.get("N05_005b"), 10) <= this.year.current && parseInt(feature.get("N05_005e"), 10) >= this.year.current);
+        }
+
+        parseURLString(str) {
+          const parts = str.split('&');
+          if (parts.length > 0) {
+            this.urlstrings.view = parts[0];
+            const values = parts[0].split("/").map(d => parseFloat(d));
+            [this.view.zoom, this.view.center, this.view.rotation] = [values[0], [values[1], values[2]], values[3]];
+            this.setViewToMap(this.view);
+          }
+          if (parts.length > 1) {
+            this.urlstrings.year = parts[1];
+            this.year.current = parseInt(parts[1], 10);
+            this.year.years.push(this.year.current);
+          }
+          if (parts.length > 2) {
+            const lyg = this.map.getLayers().getArray();
+            for (let i = 2; i < parts.length; i++) {
+              const layerStrings = parts[i].split("=");
+              this.urlstrings.layers[layerStrings[0]] = parts[i];
+              const lygtype = lyg[lyg.map(d => d.get("permalink")).indexOf(layerStrings[0])].get("type");
+              this.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
+            }
+          }
+        }
+
+        getAllUrlString() {
+          const arr = [this.urlstrings.view, this.urlstrings.year];
+          for (let prop in this.urlstrings.layers){
+            arr.push(this.urlstrings.layers[prop]);
+          }
+          return arr.join("&");
+        }
+
+        getShouldUpdate() {
+          return this.getShouldUpdate();
+        }
+
+        getSelected() {
+          return this.selected;
+        }
+
+        getStatus() {
+          let citizen = Object.assign({}, this);
+          delete citizen.map;
+          return citizen;
+        }
+
+      }
+/*
       mapState.year.years = [mapState.year.current];
       mapState.urlstrings.year = mapState.year.current;
-
+*/
       // mvtレイヤの属性別のスタイルを設定
 
       const styles = {
@@ -777,7 +945,7 @@
       });
 
       // mvtレイヤの設定
-
+/*
       const section = new ol.layer.VectorTile({
         source: new ol.source.VectorTile({
           format: new ol.format.MVT({
@@ -791,7 +959,6 @@
         title: "路線",
         permalink: "section",
         opacity: .6,
-        preload: .5,
         style: sectionStyleFunction,
         type: "layer"
       });
@@ -812,11 +979,26 @@
         style: stationStyleFunction,
         type: "layer"
       });
+*/
+
+      const section = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT(),
+          url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
+          attributions: new ol.Attribution({
+            html: attributions.ksj
+          })
+        }),
+        title: "鉄道時系列",
+        permalink: "section",
+        type: "layer",
+        style: mvtStyle
+      });
 
       const debugLayer = new ol.layer.Tile({
           source: new ol.source.TileDebug({
             projection: 'EPSG:3857',
-            tileGrid: station.getSource().getTileGrid()
+            tileGrid: section.getSource().getTileGrid()
           }),
           title: "tileGrid",
           permalink: "tilegrid",
@@ -847,7 +1029,7 @@
       });
 
       const overlays = new ol.layer.Group({
-        layers: [section, station],
+        layers: [section/*, station*/],
         title: "Overlays",
         type: "overlays",
         permalink: "overlays"
@@ -872,18 +1054,22 @@
         }), new ol.control.ScaleLine()]),
         view: new ol.View({
           maxZoom: 16,
-          minZoom: 3
+          minZoom: 4
         }),
         layers: [basemaps, overlays, yokyo]
       });
+
+      const hoge = new State(map, mapState);
+      console.log(hoge);
 
       // permalinkの解析
 
       if (window.location.hash !== '') {
 
         const hash = window.location.hash.replace('#', '');
+        hoge.parseURLString(hash);
+/*
         const parts = hash.split('&');
-
         console.log(parts);
 
         if (parts.length > 0) {
@@ -912,10 +1098,13 @@
             mapState.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
           }
 
-        }
+        }*/
+
+        console.log("parsed Status");
+        console.log(hoge);
 
       }
-
+/*
       map.getView().setCenter(ol.proj.fromLonLat(mapState.view.center));
       map.getView().setZoom(mapState.view.zoom);
       map.getView().setRotation(mapState.view.rotation);
@@ -926,13 +1115,24 @@
         min: 1950,
         max: mapState.year.years[0]
       };
+*/
+
 
       const slider = document.getElementById("slider");
+
+      slider.setAttribute("min", hoge.getYearsExtent().min);
+      slider.setAttribute("max", hoge.getYearsExtent().max);
+
+      document.getElementById("year").innerHTML = hoge.getCurrentYear();
+      slider.value = hoge.getCurrentYear();
+      /*
       slider.setAttribute("min", mapState.year.extent.min);
       slider.setAttribute("max", mapState.year.extent.max);
 
       document.getElementById("year").innerHTML = mapState.year.current;
-      slider.value = mapState.year.current;
+      slider.value = mapState.year.current;*/
+
+
 
       // geolocationの設定
 
@@ -955,7 +1155,7 @@
       }));
 
       document.getElementById("geolocation")
-              .addEventListener("click", function(evt) {
+              .addEventListener("click", (evt) => {
                 if(!geolocation.getTracking()) {
                   geolocation.setTracking(true);
                   evt.target.classList.add("active");
@@ -964,7 +1164,7 @@
                 }
               });
 
-      geolocation.once("change:position", function() {
+      geolocation.once("change:position", () => {
         map.getView().setCenter(geolocation.getPosition());
         map.getView().setZoom(12);
         positionFeature.setGeometry(geolocation.getPosition() ?
@@ -977,51 +1177,47 @@
         });
       });
 
-      geolocation.on('change:position', function() {
+      geolocation.on('change:position', () => {
         positionFeature.setGeometry(geolocation.getPosition() ?
           new ol.geom.Point(geolocation.getPosition()) : null);
       });
 
-      // 地物選択の設定
-
-      const selected = {
-        history: [],
-        clicked: false
-      };
-
-      map.on("singleclick", function(evt) {
-        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
+      map.on("singleclick", (evt) => {
+        const feature = map.forEachFeatureAtPixel(evt.pixel, (feature) => {
           return feature;
         }, {
-          layerFilter: function(layer) {
+          layerFilter: (layer) => {
             return layer.get("permalink") === "section";
           },
           hitTolerance: 3
         });
         if (feature) {
-          selected.history.push(feature);
-          selected.current = feature;
-          selected.clicked = true;
+          mapState.selected.history.push(feature);
+          mapState.selected.current = feature;
+          mapState.selected.clicked = true;
+          
           document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
           document.getElementById("info-detail").innerHTML = createStyle(feature).title;
+          /*
           section.setStyle(selectedSection);
-          station.setStyle(selectedStation);
+          station.setStyle(selectedStation);*/
         } else {
-          selected.current = undefined;
-          selected.clicked = false;
+          mapState.selected.current = undefined;
+          mapState.selected.clicked = false;
           document.getElementById("info-title").innerHTML = "<ul><li>路線を選択してください</li></ul>";
           document.getElementById("info-detail").innerHTML = "事業者区分";
+          /*
           section.setStyle(sectionStyleFunction);
-          station.setStyle(stationStyleFunction);
+          station.setStyle(stationStyleFunction);*/
         }
       });
 
-      map.on("pointermove", function(evt) {
+      map.on("pointermove", (evt) => {
         if (evt.dragging) return;
-        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
+        const feature = map.forEachFeatureAtPixel(evt.pixel, (feature) => {
           return feature;
         }, {
-          layerFilter: function(layer) {
+          layerFilter: (layer) => {
             return layer.get("permalink") === "section";
           },
           hitTolerance: 3
@@ -1029,62 +1225,41 @@
 
         if (feature) {
           document.getElementById(map.getTarget()).style.cursor = "pointer";
-          if (!selected.clicked) {
-            selected.current = feature;
+          if (!mapState.selected.clicked) {
+            mapState.selected.current = feature;
             document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
             document.getElementById("info-detail").innerHTML = createStyle(feature).title;
+            /*
             section.setStyle(selectedSection);
+            */
           }
         } else {
           document.getElementById(map.getTarget()).style.cursor = "";
-          if (!selected.clicked) {
-            if (selected.current === undefined) return;
-            selected.current = undefined;
+          if (!mapState.selected.clicked) {
+            if (mapState.selected.current === undefined) return;
+            mapState.selected.current = undefined;
             document.getElementById("info-title").innerHTML = "<ul><li>路線を選択してください</li></ul>";
             document.getElementById("info-detail").innerHTML = "事業者区分";
+            /*
             section.setStyle(sectionStyleFunction);
+            */
           }
         }
       });
 
       map.on("moveend", () => {
+        /*
         updateStatus({view: map.getView()});
+*/
+        hoge.setView(map.getView());
+        updatePermalink();
       });
 
       // permalinkのupdate
-
-      function updateStatus(obj){
-
-        for (const prop in obj) {
-          if (prop === "view") {
-            mapState.view.center = ol.proj.toLonLat(obj[prop].getCenter());
-            mapState.view.zoom = obj[prop].getZoom();
-            mapState.view.rotation = obj[prop].getRotation();
-
-            mapState.urlstrings.view = [mapState.view.zoom, mapState.view.center[0], mapState.view.center[1], mapState.view.rotation].map(d => d.toFixed(6)).join("/");
-
-          } else if (prop === "year") {
-            mapState.year = obj[prop];
-            mapState.urlstrings.year = obj[prop].current;
-
-          } else if (prop === "layers") {
-
-              const currentLayers = [];
-              obj[prop].getLayers().forEach((lyr, i) => {
-                if (!lyr.getVisible()) return;
-                currentLayers.push(lyr.get("permalink"));
-              });
-              mapState.layers[obj[prop].get("permalink")] = currentLayers;
-              mapState.urlstrings.layers[obj[prop].get("permalink")] = obj[prop].get("permalink") + "=" + currentLayers.join("/");
-
-          }
-        }
-        updatePermalink();
-      }
-
       function updatePermalink() {
 
         console.log(mapState);
+        console.log(hoge);
 
         if (!mapState.shouldUpdate) {
           mapState.shouldUpdate = true;
@@ -1092,34 +1267,35 @@
         }
 /*
         Object.values(mapState.urlstrings.layers).join("&");
-*/
+*//*
         const arr = [mapState.urlstrings.view, mapState.urlstrings.year];
 
         for (let prop in mapState.urlstrings.layers){
           arr.push(mapState.urlstrings.layers[prop]);
         }
+*/
+        const hash = "#" + hoge.getAllUrlString()/*arr.join("&")*/;
 
-        const hash = "#" + arr.join("&");
-
-        window.history.pushState(mapState, 'map', hash);
+        window.history.pushState(/*mapState*/hoge.getStatus(), 'map', hash);
 
       }
 
-      window.addEventListener('popstate', function(event) {
+      window.addEventListener('popstate', (event) => {
         if (event.state === null) {
           return;
         }
         map.getView().setZoom(event.state.view.zoom);
         map.getView().setCenter(ol.proj.fromLonLat(event.state.view.center));
         map.getView().setRotation(event.state.view.rotation);
-
+/*
         mapState.year.years = event.state.year.years;
+        */
         updateYear(event.state.year.current);
 
-        basemaps.getLayers().forEach(function(lyr, i) {
+        basemaps.getLayers().forEach((lyr, i) => {
           lyr.setVisible(lyr.get("permalink") === event.state.layers.base);
         });
-        overlays.getLayers().forEach(function(lyr, i) {
+        overlays.getLayers().forEach((lyr, i) => {
           /*
           lyr.setVisible(mapState.layers.overlays.includes(lyr.get("permalink")));
           */
@@ -1131,11 +1307,20 @@
 
       // スライダーのイベントの設定
 
-      slider.addEventListener("change", function(evt) {
+      function changeSliderValue(val) {
+        slider.value = val;
+        document.getElementById("year").innerHTML = val;
+        section.setStyle(mvtStyle);
+      }
+
+      slider.addEventListener("change", (evt) => {
         const neu = parseInt(evt.target.value, 10);
+        /*
         mapState.year.current = neu;
 
-        updateYear(mapState.year.current);
+        updateYear(mapState.year.current);*/
+        hoge.setYear(neu);
+        changeSliderValue(neu);
         updatePermalink();
       });
 
@@ -1147,18 +1332,32 @@
       const sliderButtons = document.querySelectorAll(".slider-button");
 
       for (let i = 0; i < sliderButtons.length; i++) {
-        sliderButtons[i].addEventListener("click", function(evt) {
+        sliderButtons[i].addEventListener("click", (evt) => {
+          /*
           const neu = mapState.year.years[mapState.year.years.length - 1] + parseInt(evt.target.dataset.year, 10);
+          */
+          const neu = hoge.getCurrentYear() + parseInt(evt.target.dataset.year, 10);
 
+          if (neu <= hoge.getYearsExtent().min) {
+            hoge.setYear(hoge.getYearsExtent().min);
+          } else if (neu >= hoge.getYearsExtent().max) {
+            hoge.setYear(hoge.getYearsExtent().max);
+          } else {
+            hoge.setYear(neu);
+          }
+          changeSliderValue(hoge.getCurrentYear());
+/*
           if (neu <= mapState.year.extent.min) {
             mapState.year.current = mapState.year.extent.min;
           } else if (neu >= mapState.year.extent.max) {
             mapState.year.current = mapState.year.extent.max;
           } else {
             mapState.year.current = neu;
-          }
-
+          }*/
+/*
           updateYear(mapState.year.current);
+          */
+
           updatePermalink();
 
         });
@@ -1172,8 +1371,12 @@
         slider.value = num;
         document.getElementById("year").innerHTML = num;
 
-        section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);
+        section.setStyle(mvtStyle);
+/*
+        section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);*/
+        /*
         station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
+        */
       }
 
 
@@ -1200,8 +1403,10 @@
 
             lyg.getLayers().forEach((lyr, j) => {
               if (lyr.get("type") === "layer") {
-
+/*
                 lyr.setVisible(mapState.layers[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
+                */
+                lyr.setVisible(hoge.getLayers()[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
 
                 const botan = document.createElement("li");
                 botan.classList.add("layer-menu");
@@ -1213,7 +1418,7 @@
 
                 groupUL.appendChild(botan);
 
-                botan.addEventListener("click", function(evt) {
+                botan.addEventListener("click", (evt) => {
                   if (lyg.get("type") === "basemaps") {
 
                     const botans = document.querySelectorAll(".layer-" + lyg.get("permalink"));
@@ -1240,8 +1445,11 @@
                     lyr.setVisible(!lyr.getVisible());
 
                   }
-
-                updateStatus({layers: lyg});
+/*
+                updateStatus({layers: lyg});*/
+                hoge.setLayersFromGroup(lyg);
+                updatePermalink();
+                console.log(hoge);
 
                 });
 
@@ -1323,7 +1531,7 @@
       ;(() => {
 
         document.getElementById("toggle-menu")
-                .addEventListener("click", function(){
+                .addEventListener("click", () => {
                   document.getElementById("menu").style.display = "inline-block";
                 });
 /*
@@ -1339,7 +1547,7 @@
 */
         for (let i = 0; i < document.querySelectorAll(".menu-closer").length; i++){
           document.querySelectorAll(".menu-closer")[i]
-                  .addEventListener("click", function(){
+                  .addEventListener("click", () => {
                     document.getElementById('menu').style.display = "none";
                   });
         }
@@ -1379,27 +1587,32 @@
 */
       // スタイルの設定
 
+      function mvtStyle(feature, resolution, year) {
+        if (feature.get("layer") === "section") return sectionStyleFunction(feature, resolution);
+        if (feature.get("layer") === "station") return stationStyleFunction(feature, resolution);
+      }
+
       function sectionStyleFunction(feature, resolution) {
         return [
           new ol.style.Style({
             zIndex: 0,
             stroke: new ol.style.Stroke({
               width: Math.min(12, createStyle(feature).width * baiBain(resolution)) + 2,
-              color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? "black" : "rgba(255,255,255,0)"
+              color: /*parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current*/hoge.getVisibleInYear(feature) ? "black" : "rgba(255,255,255,0)"
             })
           }),
           new ol.style.Style({
             zIndex: createStyle(feature).zIndex,
             stroke: new ol.style.Stroke({
               width: Math.min(12, createStyle(feature).width * baiBain(resolution)),
-              color: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? createStyle(feature).color : "rgba(255,255,255,0)"
+              color: /*parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current*/hoge.getVisibleInYear(feature) ? createStyle(feature).color : "rgba(255,255,255,0)"
             })
           })
         ];
       }
 
       function selectedSection(feature, resolution) {
-        if (feature.get("N05_006") === selected.current.get("N05_006")) {
+        if (feature.get("N05_006") === mapState.selected.current.get("N05_006")) {
           return [
             new ol.style.Style({
               zIndex: 15,
@@ -1443,7 +1656,8 @@
             })
           })
         })];
-        if (parseInt(feature.get("N05_005b"), 10) > mapState.year.current || parseInt(feature.get("N05_005e"), 10) < mapState.year.current || resolution > 20) {
+        /*if (parseInt(feature.get("N05_005b"), 10) > mapState.year.current || parseInt(feature.get("N05_005e"), 10) < mapState.year.current || resolution > 20)*/
+        if (!hoge.getVisibleInYear(feature) || resolution > 20) {
           sty[0].getImage().setOpacity(0);
           return sty[0];
         } else if (resolution < 4.78) {
@@ -1454,7 +1668,7 @@
               font: "11px -apple-system,sans-serif",
               textAlign: "left",
               textBaseline: "middle",
-              text: parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current ? feature.get("N05_011") : undefined,
+              text: /*parseInt(feature.get("N05_005b"), 10) <= mapState.year.current && parseInt(feature.get("N05_005e"), 10) >= mapState.year.current*/hoge.getVisibleInYear(feature) ? feature.get("N05_011") : undefined,
               fill: new ol.style.Fill({
                 color: "white"
               }),
@@ -1469,7 +1683,7 @@
       }
 
       function selectedStation(feature, resolution) {
-        if (feature.get("N05_003") === selected.current.get("N05_003") && feature.get("N05_002") === selected.current.get("N05_002")) {
+        if (feature.get("N05_003") === mapState.selected.current.get("N05_003") && feature.get("N05_002") === mapState.selected.current.get("N05_002")) {
           let sty = [
             new ol.style.Style({
               zIndex: 10,
@@ -1511,6 +1725,7 @@
         }
       }
 
+
       function createStyle(feature) {
         return feature.get("N05_001") === "1" ? styles.shinkansen :
           feature.get("N05_001") === "2" ? styles.jr :
@@ -1521,8 +1736,8 @@
       function baiBain(resolution) {
         return resolution < 38.22 ? 38.22 / resolution : 1;
       }
-
-    })();
+/*
+    })();*/
   </script>
 </body>
 
