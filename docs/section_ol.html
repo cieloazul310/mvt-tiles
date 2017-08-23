@@ -696,8 +696,8 @@
           const values = str.split("/").map(d => parseFloat(d));
           const neu = {
             zoom: values[0],
-            center: values[1],
-            rotation: values[2]
+            center: [values[1], values[2]],
+            rotation: values[3]
           };/*
           [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];*/
           this.config.view = neu;
