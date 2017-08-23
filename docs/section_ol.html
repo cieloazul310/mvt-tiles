@@ -620,11 +620,11 @@
       </div>
     </nav>
   </div>
-  <script>/*
+  <script>
     ;
     (() => {
       "use strict";
-*/
+
       // デフォルトのmapStateを定義
 
       const mapState = {
@@ -635,7 +635,7 @@
         },
         layers: {
           base: ["allblacks"],
-          overlays: ["section"/*, "station"*/],
+          overlays: ["rails"/*, "station"*/],
           yokyo: []
         },
         year: {
@@ -676,10 +676,6 @@
         setView(config) {
           this.config.view = config;
           return this;
-        }
-
-        getView() {
-          return this.config.view;
         }
 
         setViewFromMap() {
@@ -1057,43 +1053,8 @@
       });
 
       // mvtレイヤの設定
-/*
-      const section = new ol.layer.VectorTile({
-        source: new ol.source.VectorTile({
-          format: new ol.format.MVT({
-            layers: ["section"]
-          }),
-          url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
-          attributions: new ol.Attribution({
-            html: attributions.ksj
-          })
-        }),
-        title: "路線",
-        permalink: "section",
-        opacity: .6,
-        style: sectionStyleFunction,
-        type: "layer"
-      });
 
-      const station = new ol.layer.VectorTile({
-        source: new ol.source.VectorTile({
-          format: new ol.format.MVT({
-            layers: ["station"]
-          }),
-          url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
-          attributions: new ol.Attribution({
-            html: attributions.ksj
-          })
-        }),
-        title: "駅",
-        permalink: "station",
-        maxResolution: 1000,
-        style: stationStyleFunction,
-        type: "layer"
-      });
-*/
-
-      const section = new ol.layer.VectorTile({
+      const rails = new ol.layer.VectorTile({
         source: new ol.source.VectorTile({
           format: new ol.format.MVT(),
           url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
@@ -1102,7 +1063,7 @@
           })
         }),
         title: "鉄道時系列",
-        permalink: "section",
+        permalink: "rails",
         type: "layer",
         style: mvtStyle
       });
@@ -1110,7 +1071,7 @@
       const debugLayer = new ol.layer.Tile({
           source: new ol.source.TileDebug({
             projection: 'EPSG:3857',
-            tileGrid: section.getSource().getTileGrid()
+            tileGrid: rails.getSource().getTileGrid()
           }),
           title: "tileGrid",
           permalink: "tilegrid",
@@ -1141,7 +1102,7 @@
       });
 
       const overlays = new ol.layer.Group({
-        layers: [section/*, station*/],
+        layers: [rails/*, station*/],
         title: "Overlays",
         type: "overlays",
         permalink: "overlays"
@@ -1153,7 +1114,6 @@
         type: "overlays",
         permalink: "yokyo"
       });
-
 
       // mapオブジェクト
 
@@ -1177,18 +1137,9 @@
 
       if (window.location.hash !== '') {
         const hash = window.location.hash.replace('#', '');
-        /*
-        hoge.parseURLString(hash);
-        */
         const parts = hash.split('&');
         if (parts.length > 0) {
           hoge.viewURLtoConfig(parts[0]);
-          /*
-          this.config.urlstrings.view = parts[0];
-          const values = parts[0].split("/").map(d => parseFloat(d));
-          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];
-          this.setView(this.config.view);
-          */
         }
         if (parts.length > 1) {
           hoge.setYear(parseInt(parts[1], 10));
@@ -1198,17 +1149,13 @@
         }
       }
 
-
-      // マップのの初期設定を完了する
-
-      hoge.updateMap(section, mvtStyle);
-
-
       const slider = document.getElementById("slider");
       slider.setAttribute("min", hoge.getYearsExtent().min);
       slider.setAttribute("max", hoge.getYearsExtent().max);
-      document.getElementById("year").innerHTML = hoge.getCurrentYear();
-      slider.value = hoge.getCurrentYear();
+
+      // マップのの初期設定を完了する
+
+      hoge.updateMap(rails, mvtStyle);
 
       // geolocationの設定
 
@@ -1263,7 +1210,7 @@
           return feature;
         }, {
           layerFilter: (layer) => {
-            return layer.get("permalink") === "section";
+            return layer.get("permalink") === "rails";
           },
           hitTolerance: 3
         });
@@ -1294,7 +1241,7 @@
           return feature;
         }, {
           layerFilter: (layer) => {
-            return layer.get("permalink") === "section";
+            return layer.get("permalink") === "rails";
           },
           hitTolerance: 3
         });
@@ -1305,9 +1252,9 @@
             mapState.selected.current = feature;
             document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
             document.getElementById("info-detail").innerHTML = createStyle(feature).title;
-            /*
-            section.setStyle(selectedSection);
-            */
+/*
+            rails.setStyle(mvtStyle);
+*/
           }
         } else {
           document.getElementById(map.getTarget()).style.cursor = "";
@@ -1316,8 +1263,8 @@
             mapState.selected.current = undefined;
             document.getElementById("info-title").innerHTML = "<ul><li>路線を選択してください</li></ul>";
             document.getElementById("info-detail").innerHTML = "事業者区分";
-            /*
-            section.setStyle(sectionStyleFunction);
+/*
+            rails.setStyle(mvtStyle);
             */
           }
         }
@@ -1342,58 +1289,21 @@
         if (event.state === null) {
           return;
         }
+
         hoge.setStatusfromPopstate(event.state)
-            .updateMap(section, mvtStyle)
-            .updateLayerMenu();
-        /*
-        map.getView().setZoom(event.state.view.zoom);
-        map.getView().setCenter(ol.proj.fromLonLat(event.state.view.center));
-        map.getView().setRotation(event.state.view.rotation);
-        *//*
-        hoge.viewConfigtoMap(event.state.view);*/
-/*
-        mapState.year.years = event.state.year.years;
-        *//*
-        updateYear(event.state.year.current);*//*
-        hoge.setYearConfig(event.state.year);
-
-        console.log(event.state);
-
-        hoge.setLayers(event.state.layers);*/
-        /*
-        hoge.updateYear(section);
-        hoge.updateView();
-        hoge.updateLayers();
-        hoge.updateLayerMenu();*/
-
-/*
-        basemaps.getLayers().forEach((lyr, i) => {
-          lyr.setVisible(lyr.get("permalink") === event.state.layers.base);
-        });
-        overlays.getLayers().forEach((lyr, i) => {
-          lyr.setVisible(event.state.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
-        });
-        */
-        hoge.setShouldUpdate(false);
-
+            .updateMap(rails, mvtStyle)
+            .updateLayerMenu()
+            .setShouldUpdate(false);
       });
 
       // スライダーのイベントの設定
 
-      function changeSliderValue(val) {
-        slider.value = val;
-        document.getElementById("year").innerHTML = val;
-        section.setStyle(mvtStyle);
-      }
-
       slider.addEventListener("change", (evt) => {
         const neu = parseInt(evt.target.value, 10);
-        /*
-        mapState.year.current = neu;
 
-        updateYear(mapState.year.current);*/
-        hoge.setYear(neu);
-        changeSliderValue(neu);
+        hoge.setYear(neu)
+            .updateYear(rails, mvtStyle);
+
         updatePermalink();
       });
 
@@ -1416,7 +1326,7 @@
           } else {
             hoge.setYear(neu);
           }
-          changeSliderValue(hoge.getCurrentYear());
+          hoge.updateYear(rails, mvtStyle);
           updatePermalink();
 
         });
@@ -1717,8 +1627,8 @@
       function baiBain(resolution) {
         return resolution < 38.22 ? 38.22 / resolution : 1;
       }
-/*
-    })();*/
+
+    })();
   </script>
 </body>
 
