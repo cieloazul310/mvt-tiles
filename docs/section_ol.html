@@ -629,12 +629,12 @@
 
       const mapState = {
         view: {
-          zoom: 6,
-          center: [140.6, 36.5],
+          zoom: 9,
+          center: [139.8241, 35.7080],
           rotation: 0
         },
         layers: {
-          base: ["slope"],
+          base: ["allblacks"],
           overlays: ["section"/*, "station"*/],
           yokyo: []
         },
@@ -653,169 +653,281 @@
       class State {
         constructor(map, defaults) {
           this.map = map;
-          [this.view, this.layers, this.year] = [defaults.view, defaults.layers, defaults.year];
+          this.config = Object.assign({}, defaults);
 
-          this.shouldUpdate = true;
-          this.selected = {
+          this.config.shouldUpdate = true;
+          this.config.selected = {
             history: [],
             clicked: false
           };
-          this.year.years.push(this.year.current);
-          this.year.extent.max = this.year.current;
 
-          this.urlstrings = {layers: {}};
+          this.config.year.years.push(this.config.year.current);
+          this.config.year.extent.max = this.config.year.current;
+
+          this.config.urlstrings = {layers: {}};
           this.tributeLayersStrings(defaults.layers);
 
-          this.urlstrings.view = this.viewStrings(this.view);
-          this.urlstrings.year = this.year.current;
+          this.config.urlstrings.view = this.viewStrings(this.config.view);
+          this.config.urlstrings.year = this.config.year.current;
 
-          this.shouldUpdate = true;
-          this.selected = {
-            history: [],
-            clicked: false
-          };
           return this;
         }
 
-        setView(view) {
-          const neu = {zoom: view.getZoom(), center: ol.proj.toLonLat(view.getCenter()), rotation: view.getRotation()};
-          this.view = neu;
-          this.urlstrings.view = this.viewStrings(neu);
+        setView(config) {
+          this.config.view = config;
           return this;
         }
+
         getView() {
-          return this.view;
+          return this.config.view;
         }
-        setViewToMap(view) {
-          this.map.getView().setCenter(ol.proj.fromLonLat(view.center));
-          this.map.getView().setZoom(view.zoom);
-          this.map.getView().setRotation(view.rotation);
+
+        setViewFromMap() {
+          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [this.map.getView().getZoom(), ol.proj.toLonLat(this.map.getView().getCenter()), this.map.getView().getRotation()];
+          this.config.urlstrings.view = this.viewStrings(this.config.view);
           return this;
         }
+
+        viewURLtoConfig(str) {
+          this.config.urlstrings.view = str;
+          const values = str.split("/").map(d => parseFloat(d));
+          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];
+          return this;
+        }
+
         viewStrings(viewState) {
           return [viewState.zoom, viewState.center[0], viewState.center[1], viewState.rotation].map(d => d.toFixed(6)).join("/");
         }
         getViewStrings() {
-          return this.urlstrings.view;
+          return this.config.urlstrings.view;
         }
 
-        setLayers(obj) {
-          this.layers = obj;
+        setLayers(config) {
+          this.config.layers = config;
           return this;
         }
+
         setLayersFromGroup(lyg) {
           const currentLayers = [];
           lyg.getLayers().forEach((lyr, i) => {
             if (!lyr.getVisible()) return;
             currentLayers.push(lyr.get("permalink"));
           });
-          this.layers[lyg.get("permalink")] = currentLayers;
-          this.urlstrings.layers[lyg.get("permalink")] = this.layersStringsFromGroup(lyg);
+          this.config.layers[lyg.get("permalink")] = currentLayers;
+          this.config.urlstrings.layers[lyg.get("permalink")] = this.layersStringsFromGroup(lyg);
           return this;
         }
 
         layersStringsFromGroup(lyg) {
-          return lyg.get("permalink") + "=" + this.layers[lyg.get("permalink")].join("/");
+          return lyg.get("permalink") + "=" + this.config.layers[lyg.get("permalink")].join("/");
         }
 
         getLayers(permalink) {
-          if (permalink) return this.layers[permalink];
-          return this.layers;
+          if (permalink) return this.config.layers[permalink];
+          return this.config.layers;
         }
 
         tributeLayersStrings(layers) {
           // distributes each layer congig to url strings
           for (let prop in layers) {
-            this.urlstrings.layers[prop] = prop + "=" + layers[prop].join("/");
+            this.config.urlstrings.layers[prop] = prop + "=" + layers[prop].join("/");
           }
           return;
         }
 
-        getLayersStrings() {
+        getLayersURLStrings() {
           // return a joined url strings
           const arr = [];
-          for (let prop in this.urlstrings.layers) {
-            arr.push(this.urlstrings.layers[prop]);
+          for (let prop in this.config.urlstrings.layers) {
+            arr.push(this.config.urlstrings.layers[prop]);
           }
           return arr.join("&");
         }
 
         getCurrentYear() {
-          return this.year.current;
+          return this.config.year.current;
+        }
+
+        setYearConfig(config) {
+          this.config.year = config;
+          return this;
         }
 
         setYear(year) {
-          this.year.current = parseInt(year, 10);
-          this.year.years.push(year);
-          this.urlstrings.year = year;
+          this.config.year.current = parseInt(year, 10);
+          this.config.year.years.push(year);
+          this.config.urlstrings.year = year;
           return this;
         }
 
         getYearsExtent() {
-          return this.year.extent;
+          return this.config.year.extent;
         }
 
         setYearsExtent(arr) {
           if (arr.length !== 2) throw error;
-          this.year.extent = {min: parseInt(Math.min(arr[0], arr[1]), 10), max: parseInt(Math.max(arr[0], arr[1]), 10)};
+          this.config.year.extent = {min: parseInt(Math.min(arr[0], arr[1]), 10), max: parseInt(Math.max(arr[0], arr[1]), 10)};
           return this;
         }
 
         getVisibleInYear(feature) {
-          return (parseInt(feature.get("N05_005b"), 10) <= this.year.current && parseInt(feature.get("N05_005e"), 10) >= this.year.current);
+          return (parseInt(feature.get("N05_005b"), 10) <= this.config.year.current && parseInt(feature.get("N05_005e"), 10) >= this.config.year.current);
         }
 
         parseURLString(str) {
           const parts = str.split('&');
           if (parts.length > 0) {
-            this.urlstrings.view = parts[0];
-            const values = parts[0].split("/").map(d => parseFloat(d));
-            [this.view.zoom, this.view.center, this.view.rotation] = [values[0], [values[1], values[2]], values[3]];
-            this.setViewToMap(this.view);
+            this.viewURLtoConfig(parts[0]);
           }
           if (parts.length > 1) {
-            this.urlstrings.year = parts[1];
-            this.year.current = parseInt(parts[1], 10);
-            this.year.years.push(this.year.current);
+            this.setYear(parseInt(parts[1], 10));
           }
           if (parts.length > 2) {
-            const lyg = this.map.getLayers().getArray();
-            for (let i = 2; i < parts.length; i++) {
-              const layerStrings = parts[i].split("=");
-              this.urlstrings.layers[layerStrings[0]] = parts[i];
-              const lygtype = lyg[lyg.map(d => d.get("permalink")).indexOf(layerStrings[0])].get("type");
-              this.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
-            }
+            this.layersURLtoConfig(parts.slice(2));
           }
         }
 
+        // distribute urlstrings
+        setLayerURLStrings(prop, str) {
+          this.config.urlstrings.layers[prop] = str;
+          return this;
+        }
+
+        // url to config(inclueding urlstrings)
+        layerURLtoConfig(str, lyg) {
+          const lyGroups = lyg || this.map.getLayers().getArray();
+          const layerStrings = str.split("=");
+          this.setLayerURLStrings(layerStrings[0], str);
+          const lygtype = lyGroups[lyGroups.map(d => d.get("permalink")).indexOf(layerStrings[0])].get("type");
+          this.config.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
+          return this;
+        }
+
+        // array of urls to config
+        layersURLtoConfig(arr) {
+          console.log(this.config.layers);
+          const lyg = this.map.getLayers().getArray();
+          for (let i = 0; i < arr.length; i++) {
+            this.layerURLtoConfig(arr[i], lyg);
+          }
+          console.log(arr.length + " layers were set to Config");
+          console.log(this.config.layers);
+          return this;
+        }
+
+        layersConfigtoMap(config) {
+          const lygs = this.map.getLayers();
+          lygs.forEach((lyg, i) => {
+            const permalink = lyg.get("permalink");
+            const visibleLayers = config[permalink];
+            lyg.getLayers().forEach((lyr, j) => {
+              lyr.setVisible(visibleLayers.indexOf(lyr.get("permalink")) >= 0);
+            });
+          });
+          console.log("set layers to map from config");
+        }
+
         getAllUrlString() {
-          const arr = [this.urlstrings.view, this.urlstrings.year];
-          for (let prop in this.urlstrings.layers){
-            arr.push(this.urlstrings.layers[prop]);
+          const arr = [this.config.urlstrings.view, this.config.urlstrings.year];
+          for (let prop in this.config.urlstrings.layers) {
+            arr.push(this.config.urlstrings.layers[prop]);
           }
           return arr.join("&");
         }
 
         getShouldUpdate() {
-          return this.getShouldUpdate();
+          return this.config.shouldUpdate;
+        }
+
+        setShouldUpdate(bool) {
+          this.config.shouldUpdate = bool;
+          return this;
         }
 
         getSelected() {
-          return this.selected;
+          return this.config.selected;
         }
 
+        setSelectedFeature(feature) {
+          if (feature) {
+            this.config.selected.history.push(feature);
+            this.config.selected.current = feature;
+          } else {
+            this.config.selected.history.push(feature);
+            this.config.selected.current = undefined;
+          }
+        }
+
+        // take config
+
         getStatus() {
-          let citizen = Object.assign({}, this);
-          delete citizen.map;
-          return citizen;
+          return this.config;
+        }
+
+        setStatusfromPopstate(state) {
+          this.config = state;
+          return this;
+        }
+
+        // update map from config
+
+        updateView() {
+          this.map.getView().setCenter(ol.proj.fromLonLat(this.config.view.center));
+          this.map.getView().setZoom(this.config.view.zoom);
+          this.map.getView().setRotation(this.config.view.rotation);
+          return this;
+        }
+
+        updateYear(layer, style) {
+          document.getElementById("year").innerHTML = this.getCurrentYear();
+          document.getElementById("slider").value = this.getCurrentYear();
+
+          if (layer && style) {
+            layer.setStyle(style);
+          }
+          return this;
+        }
+
+        // layer config to the Map
+        updateLayers() {
+          this.map.getLayers().forEach((lyg, i) => {
+            const permalink = lyg.get("permalink");
+            const visibleLayers = this.config.layers[permalink];
+            lyg.getLayers().forEach((lyr, j) => {
+              lyr.setVisible(visibleLayers.indexOf(lyr.get("permalink")) >= 0);
+            });
+          });
+          this.tributeLayersStrings(this.config.layers);
+          return this;
+        }
+
+        // use only when popstate
+        updateLayerMenu() {
+          this.map.getLayers().forEach((lyg, i) => {
+            const permalink = lyg.get("permalink");
+            const visibleLayers = this.config.layers[permalink];
+            lyg.getLayers().forEach((lyr, j) => {
+              const li = document.getElementById("layer-" + lyr.get("permalink"));
+              if (visibleLayers.indexOf(lyr.get("permalink")) >= 0) {
+                li.classList.add("active");
+              } else {
+                li.classList.remove("active");
+              }
+            });
+          });
+          return this;
+        }
+
+        updateMap(layer, style) {
+          this.updateView()
+              .updateYear(layer, style)
+              .updateLayers();
+
+          return this;
         }
 
       }
-/*
-      mapState.year.years = [mapState.year.current];
-      mapState.urlstrings.year = mapState.year.current;
-*/
+
       // mvtレイヤの属性別のスタイルを設定
 
       const styles = {
@@ -939,7 +1051,7 @@
 
       const basemaps = new ol.layer.Group({
         layers: [osm, cjpale, ort, relief, slope, cjblank, allblacks],
-        title: "Basemaps",
+        title: "Basemap",
         type: "basemaps",
         permalink: "base"
       });
@@ -1060,79 +1172,43 @@
       });
 
       const hoge = new State(map, mapState);
-      console.log(hoge);
 
-      // permalinkの解析
+      // permalinkの解析し、上記クラスのconfigに反映
 
       if (window.location.hash !== '') {
-
         const hash = window.location.hash.replace('#', '');
+        /*
         hoge.parseURLString(hash);
-/*
+        */
         const parts = hash.split('&');
-        console.log(parts);
-
         if (parts.length > 0) {
-          mapState.urlstrings.view = parts[0];
-
+          hoge.viewURLtoConfig(parts[0]);
+          /*
+          this.config.urlstrings.view = parts[0];
           const values = parts[0].split("/").map(d => parseFloat(d));
-          [mapState.view.zoom, mapState.view.center, mapState.view.rotation] = [values[0], [values[1], values[2]], values[3]];
-
+          [this.config.view.zoom, this.config.view.center, this.config.view.rotation] = [values[0], [values[1], values[2]], values[3]];
+          this.setView(this.config.view);
+          */
         }
         if (parts.length > 1) {
-          mapState.urlstrings.year = parts[1];
-          mapState.year.current = parseInt(parts[1], 10);
-          mapState.year.years.push(mapState.year.current);
+          hoge.setYear(parseInt(parts[1], 10));
         }
-
         if (parts.length > 2) {
-
-          const lyg = map.getLayers().getArray();
-
-          for (let i = 2; i < parts.length; i++) {
-            const layerStrings = parts[i].split("=");
-            mapState.urlstrings.layers[layerStrings[0]] = parts[i];
-
-            const lygtype = lyg[lyg.map(d => d.get("permalink")).indexOf(layerStrings[0])].get("type");
-
-            mapState.layers[layerStrings[0]] = layerStrings[1] === "" ? [] : layerStrings[1].split("/");
-          }
-
-        }*/
-
-        console.log("parsed Status");
-        console.log(hoge);
-
+          hoge.layersURLtoConfig(parts.slice(2));
+        }
       }
-/*
-      map.getView().setCenter(ol.proj.fromLonLat(mapState.view.center));
-      map.getView().setZoom(mapState.view.zoom);
-      map.getView().setRotation(mapState.view.rotation);
 
-      // スライダーの設定
 
-      mapState.year.extent = {
-        min: 1950,
-        max: mapState.year.years[0]
-      };
-*/
+      // マップのの初期設定を完了する
+
+      hoge.updateMap(section, mvtStyle);
 
 
       const slider = document.getElementById("slider");
-
       slider.setAttribute("min", hoge.getYearsExtent().min);
       slider.setAttribute("max", hoge.getYearsExtent().max);
-
       document.getElementById("year").innerHTML = hoge.getCurrentYear();
       slider.value = hoge.getCurrentYear();
-      /*
-      slider.setAttribute("min", mapState.year.extent.min);
-      slider.setAttribute("max", mapState.year.extent.max);
-
-      document.getElementById("year").innerHTML = mapState.year.current;
-      slider.value = mapState.year.current;*/
-
-
 
       // geolocationの設定
 
@@ -1182,7 +1258,7 @@
           new ol.geom.Point(geolocation.getPosition()) : null);
       });
 
-      map.on("singleclick", (evt) => {
+      map.on(["singleclick", "touch"], (evt) => {
         const feature = map.forEachFeatureAtPixel(evt.pixel, (feature) => {
           return feature;
         }, {
@@ -1195,7 +1271,7 @@
           mapState.selected.history.push(feature);
           mapState.selected.current = feature;
           mapState.selected.clicked = true;
-          
+
           document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
           document.getElementById("info-detail").innerHTML = createStyle(feature).title;
           /*
@@ -1212,7 +1288,7 @@
         }
       });
 
-      map.on("pointermove", (evt) => {
+      map.on(["pointermove", "touchstart"], (evt) => {
         if (evt.dragging) return;
         const feature = map.forEachFeatureAtPixel(evt.pixel, (feature) => {
           return feature;
@@ -1248,60 +1324,57 @@
       });
 
       map.on("moveend", () => {
-        /*
-        updateStatus({view: map.getView()});
-*/
-        hoge.setView(map.getView());
+        hoge.setViewFromMap().updateView();
         updatePermalink();
       });
 
       // permalinkのupdate
       function updatePermalink() {
-
-        console.log(mapState);
-        console.log(hoge);
-
-        if (!mapState.shouldUpdate) {
-          mapState.shouldUpdate = true;
+        if (!hoge.getShouldUpdate()) {
+          hoge.setShouldUpdate(true);
           return;
         }
-/*
-        Object.values(mapState.urlstrings.layers).join("&");
-*//*
-        const arr = [mapState.urlstrings.view, mapState.urlstrings.year];
-
-        for (let prop in mapState.urlstrings.layers){
-          arr.push(mapState.urlstrings.layers[prop]);
-        }
-*/
-        const hash = "#" + hoge.getAllUrlString()/*arr.join("&")*/;
-
-        window.history.pushState(/*mapState*/hoge.getStatus(), 'map', hash);
-
+        const hash = "#" + hoge.getAllUrlString();
+        window.history.pushState(hoge.getStatus(), 'map', hash);
       }
 
       window.addEventListener('popstate', (event) => {
         if (event.state === null) {
           return;
         }
+        hoge.setStatusfromPopstate(event.state)
+            .updateMap(section, mvtStyle)
+            .updateLayerMenu();
+        /*
         map.getView().setZoom(event.state.view.zoom);
         map.getView().setCenter(ol.proj.fromLonLat(event.state.view.center));
         map.getView().setRotation(event.state.view.rotation);
+        *//*
+        hoge.viewConfigtoMap(event.state.view);*/
 /*
         mapState.year.years = event.state.year.years;
-        */
-        updateYear(event.state.year.current);
+        *//*
+        updateYear(event.state.year.current);*//*
+        hoge.setYearConfig(event.state.year);
 
+        console.log(event.state);
+
+        hoge.setLayers(event.state.layers);*/
+        /*
+        hoge.updateYear(section);
+        hoge.updateView();
+        hoge.updateLayers();
+        hoge.updateLayerMenu();*/
+
+/*
         basemaps.getLayers().forEach((lyr, i) => {
           lyr.setVisible(lyr.get("permalink") === event.state.layers.base);
         });
         overlays.getLayers().forEach((lyr, i) => {
-          /*
-          lyr.setVisible(mapState.layers.overlays.includes(lyr.get("permalink")));
-          */
           lyr.setVisible(event.state.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
         });
-        mapState.shouldUpdate = false;
+        */
+        hoge.setShouldUpdate(false);
 
       });
 
@@ -1333,9 +1406,7 @@
 
       for (let i = 0; i < sliderButtons.length; i++) {
         sliderButtons[i].addEventListener("click", (evt) => {
-          /*
-          const neu = mapState.year.years[mapState.year.years.length - 1] + parseInt(evt.target.dataset.year, 10);
-          */
+
           const neu = hoge.getCurrentYear() + parseInt(evt.target.dataset.year, 10);
 
           if (neu <= hoge.getYearsExtent().min) {
@@ -1346,25 +1417,13 @@
             hoge.setYear(neu);
           }
           changeSliderValue(hoge.getCurrentYear());
-/*
-          if (neu <= mapState.year.extent.min) {
-            mapState.year.current = mapState.year.extent.min;
-          } else if (neu >= mapState.year.extent.max) {
-            mapState.year.current = mapState.year.extent.max;
-          } else {
-            mapState.year.current = neu;
-          }*/
-/*
-          updateYear(mapState.year.current);
-          */
-
           updatePermalink();
 
         });
       }
 
     })();
-
+/*
       function updateYear(num) {
         mapState.year.years.push(num);
         mapState.urlstrings.year = num;
@@ -1372,13 +1431,8 @@
         document.getElementById("year").innerHTML = num;
 
         section.setStyle(mvtStyle);
-/*
-        section.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedSection : sectionStyleFunction);*/
-        /*
-        station.setStyle(selected.hasOwnProperty('current') && selected.current !== undefined ? selectedStation : stationStyleFunction);
-        */
       }
-
+*/
 
       // レイヤメニューの設定
 
@@ -1403,14 +1457,14 @@
 
             lyg.getLayers().forEach((lyr, j) => {
               if (lyr.get("type") === "layer") {
-/*
-                lyr.setVisible(mapState.layers[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
-                */
+
                 lyr.setVisible(hoge.getLayers()[lyg.get("permalink")].indexOf(lyr.get("permalink")) >= 0);
 
                 const botan = document.createElement("li");
                 botan.classList.add("layer-menu");
                 botan.classList.add("layer-" + lyg.get("permalink"));
+                botan.id = "layer-" + lyr.get("permalink");
+
                 if (lyr.getVisible()){
                   botan.classList.add("active");
                 }
@@ -1445,11 +1499,9 @@
                     lyr.setVisible(!lyr.getVisible());
 
                   }
-/*
-                updateStatus({layers: lyg});*/
+
                 hoge.setLayersFromGroup(lyg);
                 updatePermalink();
-                console.log(hoge);
 
                 });
 
@@ -1465,67 +1517,6 @@
 
       })();
 
-/*
-      ;
-      (() => {
-
-        basemaps.getLayers().forEach(function(lyr, i) {
-          lyr.setVisible(lyr.get("permalink") === mapState.layers.base);
-        });
-        overlays.getLayers().forEach(function(lyr, i) {*/
-          /*
-          lyr.setVisible(mapState.layers.overlays.includes(lyr.get("permalink")));
-          *//*
-          lyr.setVisible(mapState.layers.overlays.indexOf(lyr.get("permalink")) >= 0);
-        });
-
-        const baseContainer = document.createElement("ul");
-        baseContainer.setAttribute("class", "layer-menu base-menu");
-
-        for (let i = 0; i < basemaps.getLayers().getArray().length; i++) {
-          const botan = document.createElement("li");
-          botan.innerHTML = basemaps.getLayers().getArray()[i].get("title");
-
-          if (basemaps.getLayers().getArray()[i].getVisible()) botan.classList.add("active");
-
-          botan.addEventListener("click", function(evt) {
-            basemaps.getLayers().forEach(lyr => lyr.setVisible(false));
-
-            for (let j = 0; j < document.querySelectorAll("ul.base-menu li").length; j++){
-              document.querySelectorAll("ul.base-menu li")[j].classList.remove("active");
-            }
-
-            basemaps.getLayers().getArray()[i].setVisible(true);
-            evt.target.classList.add("active");
-            updatePermalink();
-          });
-          baseContainer.appendChild(botan);
-          document.getElementById("basemaps").appendChild(baseContainer);
-        }
-
-        const overlayContainer = document.createElement("ul");
-        overlayContainer.setAttribute("class", "layer-menu overlay-menu");
-
-        for (let i = 0; i < overlays.getLayers().getArray().length; i++) {
-          const botan = document.createElement("li");
-          botan.innerHTML = overlays.getLayers().getArray()[i].get("title");
-          if (overlays.getLayers().getArray()[i].getVisible()) botan.classList.add("active");
-
-          botan.addEventListener("click", function() {
-            overlays.getLayers().getArray()[i].setVisible(!overlays.getLayers().getArray()[i].getVisible());
-            if (overlays.getLayers().getArray()[i].getVisible()) {
-              botan.classList.add("active");
-            } else {
-              botan.classList.remove("active");
-            }
-            updatePermalink();
-          });
-          overlayContainer.appendChild(botan);
-          document.getElementById("overlays").appendChild(overlayContainer);
-        }
-
-      })();
-*/
       // メニューの設定
 
       ;(() => {
@@ -1534,17 +1525,7 @@
                 .addEventListener("click", () => {
                   document.getElementById("menu").style.display = "inline-block";
                 });
-/*
-        document.getElementById("menu")
-                .addEventListener("singleclick", function(evt){
-                  evt.target.style.display = "none";
-                });
 
-        document.getElementById("menu-close")
-                .addEventListener("click", function(){
-                  document.getElementById('menu').style.display = "none";
-                });
-*/
         for (let i = 0; i < document.querySelectorAll(".menu-closer").length; i++){
           document.querySelectorAll(".menu-closer")[i]
                   .addEventListener("click", () => {
