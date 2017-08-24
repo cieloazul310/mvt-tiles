@@ -659,6 +659,7 @@
 
           this.config.shouldUpdate = true;
           this.config.selected.clicked = false;
+          this.config.selected.mustupinfo = false;
 
           this.config.year.years.push(this.config.year.current);
           this.config.year.extent.max = this.config.year.current;
@@ -893,6 +894,15 @@
         setSelectedClicked(bool) {
           this.config.selected.clicked = bool;
           return this;
+        }
+
+        setMustUpdateInfo(bool) {
+          this.config.selected.mustupinfo = bool;
+          return this;
+        }
+
+        getMustUpdateInfo() {
+          return this.config.selected.mustupinfo;
         }
 
         // take config
@@ -1500,8 +1510,20 @@
       // スタイルの設定
 
       function mvtStyle(feature, resolution) {
+
+        if (hoge.getEqualtoCurrentCue(feature) && !hoge.getVisibleInYear(hoge.getSelectedFeature())) {
+          hoge.setMustUpdateInfo(true);
+        }
         // remove invisible features
         if (!hoge.getVisibleInYear(feature)) return new ol.style.Style();
+        if (hoge.getEqualtoCurrentCue(feature) && hoge.getMustUpdateInfo()) {
+          console.log("info updated!");
+
+          hoge.setSelectedFeature(feature);
+          document.getElementById("info-title").innerHTML = "<ul><li>" + feature.get("N05_003") + "</li><li><strong>" + feature.get("N05_002") + "</strong></li>";
+          document.getElementById("info-detail").innerHTML = createStyle(feature).title;
+          hoge.setMustUpdateInfo(false);
+        }
         if (feature.get("layer") === "section") return sectionStyleFunction(feature, resolution);
         if (feature.get("layer") === "station") return stationStyleFunction(feature, resolution);
       }
