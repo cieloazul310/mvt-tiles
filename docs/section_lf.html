@@ -53,9 +53,8 @@
       info.addTo(map);
 
       const schools = new L.TileLayer.MVTSource({
-        url: "./tile/section/" + "{z}/{x}/{y}.mvt",
+        url: "./tile/rails/" + "{z}/{x}/{y}.mvt",
         maxZoom: 18,
-        maxNativeZoom: 10,
         mutexToggle: true,
         attribution: '<a href="http://nlftp.mlit.go.jp/ksj/" target="_blank">国土数値情報（鉄道時系列）</a>',
         getIDForLayerFeature: function(feature){
@@ -63,7 +62,7 @@
         },
         onClick: hoveronFeature,
         filter: function(feature, context){
-          if(feature.properties.N05_005e === '9999') return true;
+          if(parseInt(feature.properties.N05_005b, 10) <= 1960 && parseInt(feature.properties.N05_005e, 10) >= 1960) return true;
           return false;
         }/*,
         style: function(feature){
@@ -90,6 +89,7 @@
         if(!e.feature) return;
         info.update(e.feature.properties);
       }
+
 
   </script>
 </body>
