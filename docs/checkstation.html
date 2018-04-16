@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="//openlayers.org/en/v4.3.1/css/ol.css">
+  <style>
+    .map {
+      width: 100%;
+      height: 480px;
+    }
+  </style>
+  <script src="//openlayers.org/en/v4.3.1/build/ol.js"></script>
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="map"></div>
+  <div id="info"></div>
+  <script>
+
+      const ort = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+          url: "//cyberjapandata.gsi.go.jp/xyz/seamlessphoto/" + "{z}/{x}/{y}.jpg"
+        }),
+        title: "地理院オルソ",
+        visible: true
+      });
+
+      const station = new ol.layer.VectorTile({
+        source: new ol.source.VectorTile({
+          format: new ol.format.MVT({
+            layers: ["station"]
+          }),
+          url: "./tile/rails/" + "{z}/{x}/{y}.mvt"
+        }),
+        title: "ラベル",
+        visible: true,
+        style: function(feature){
+          return [
+            new ol.style.Style({
+              image: new ol.style.Circle({
+                radius: 6,
+                fill: new ol.style.Fill({color: "orange"})
+              })
+            }),
+            new ol.style.Style({
+              text: new ol.style.Text({
+                fill: new ol.style.Fill({color: "white"}),
+                stroke: new ol.style.Stroke({width: 2, color: "black"}),
+                text: feature.get("N05_011"),
+                font: "14px sans-serif"
+              })
+            })
+          ];
+        }
+      });
+
+      const debugLayer = new ol.layer.Tile({
+          source: new ol.source.TileDebug({
+            projection: 'EPSG:3857',
+            tileGrid: station.getSource().getTileGrid()
+          }),
+          title: "tileGrid"
+      });
+
+      const view = new ol.View({
+        center: ol.proj.fromLonLat([140.6,36.5]),
+        zoom: 10
+      });
+
+      const map = new ol.Map({
+        target: "map",
+        controls: ol.control.defaults().extend([new ol.control.ScaleLine()]),
+        view: view,
+        layers: [ort, station, debugLayer]
+      });
+
+      map.on("click", function(evt){
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(feature){
+          return feature;
+        });
+        if(feature){
+          document.getElementById("info").innerHTML = feature.get("N05_011");
+        }
+      });
+
+  </script>
+</body>
+</html>
