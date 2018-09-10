@@ -22,3 +22,27 @@
 - レイヤ名: `"section"`:路線, `"station"`:駅
 
 [国土数値情報]: http://nlftp.mlit.go.jp/ksj/
+
+### [地域メッシュ統計] 250mメッシュ人口データ
+- URL: https://cieloazul310.github.io/mvt-tiles/tile/population_250m/{z}/{x}/{y}.mvt
+- ズームレベル14
+- レイヤ名: `"250mesh"`
+- 点データ
+- プロパティ:
+  - KEY_CODE: メッシュコード
+  - val: 人口総数
+
+[地域メッシュ統計]: http://www.stat.go.jp/data/mesh/
+
+### [地域メッシュ統計] 500mメッシュ人口データ
+- URL: https://cieloazul310.github.io/mvt-tiles/tile/population_500m/{z}/{x}/{y}.mvt
+- ズームレベル14
+- レイヤ名: `"merged"`
+- 点データ
+- プロパティ:
+  - KEY_CODE: メッシュコード
+  - val_2005: 2005年の人口総数
+  - val_2010: 2010年の人口総数
+  - val_2015: 2015年の人口総数
+
+[地域メッシュ統計]: http://www.stat.go.jp/data/mesh/
